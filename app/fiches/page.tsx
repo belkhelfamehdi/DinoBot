@@ -21,31 +21,31 @@ export default function ToutesLesFichesPage() {
   })
 
   // Filtrer les fiches par matière sélectionnée
-  const filteredFiches = selectedSubject === "Toutes" 
-    ? fichesData 
+  const filteredFiches = selectedSubject === "Toutes"
+    ? fichesData
     : fichesData.map(group => ({
-        date: group.date,
-        items: group.items.filter(fiche => fiche.subject === selectedSubject)
-      })).filter(group => group.items.length > 0)
+      date: group.date,
+      items: group.items.filter(fiche => fiche.subject === selectedSubject)
+    })).filter(group => group.items.length > 0)
 
   // Formater le temps d'affichage
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr)
     const days = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"]
     const months = ["jan.", "fév.", "mars", "avril", "mai", "juin", "juil.", "août", "sep.", "oct.", "nov.", "déc."]
-    
+
     const dayName = days[date.getDay()]
     const day = date.getDate()
     const month = months[date.getMonth()]
     const hours = date.getHours()
     const minutes = date.getMinutes().toString().padStart(2, '0')
-    
+
     return `${dayName} ${day} ${month} à ${hours}h${minutes}`
   }
 
   // Obtenir le type de fiche formaté
   const getTypeLabel = (type: string) => {
-    switch(type) {
+    switch (type) {
       case "fiche": return "Fiche - Révision"
       case "flashcard": return "FlashCard"
       case "quiz": return "Quiz"
@@ -169,9 +169,8 @@ export default function ToutesLesFichesPage() {
                   setSelectedSubject("Toutes")
                   setIsSubjectModalOpen(false)
                 }}
-                className={`w-full flex items-center gap-4 p-4 rounded-[1.25rem] transition-all hover:scale-[1.01] ${
-                  selectedSubject === "Toutes" ? "bg-slate-100" : "bg-white hover:bg-slate-50"
-                }`}
+                className={`w-full flex items-center gap-4 p-4 rounded-[1.25rem] transition-all hover:scale-[1.01] ${selectedSubject === "Toutes" ? "bg-slate-100" : "bg-white hover:bg-slate-50"
+                  }`}
               >
                 <div className="text-3xl">📚</div>
                 <span className="text-base font-bold tracking-tight flex-1 text-left text-slate-700">
@@ -188,9 +187,8 @@ export default function ToutesLesFichesPage() {
                       setSelectedSubject(subject.name)
                       setIsSubjectModalOpen(false)
                     }}
-                    className={`w-full flex items-center gap-4 p-4 rounded-[1.25rem] transition-all hover:scale-[1.01] ${
-                      isSelected ? subject.bgColor : "bg-white hover:bg-slate-50"
-                    }`}
+                    className={`w-full flex items-center gap-4 p-4 rounded-[1.25rem] transition-all hover:scale-[1.01] ${isSelected ? subject.bgColor : "bg-white hover:bg-slate-50"
+                      }`}
                   >
                     <div className="text-3xl">{subject.icon}</div>
                     <span className={`text-base font-bold tracking-tight flex-1 text-left ${subject.color}`}>
