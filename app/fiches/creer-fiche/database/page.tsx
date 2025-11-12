@@ -9,11 +9,22 @@ import { useCourses } from "@/hooks/use-courses"
 export default function DatabaseGeneratorPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { getSubjectById, getChaptersBySubject, getPartsByChapter } = useCourses()
+  const { getSubjectById, getSubjectByName, getChaptersBySubject, getPartsByChapter } = useCourses()
 
-  // Récupérer la matière depuis les paramètres URL ou utiliser 'chimie' par défaut
-  const subjectId = searchParams.get('subject') || 'chimie'
-  const subject = getSubjectById(subjectId)
+  // Récupérer la matière depuis les paramètres URL (nom ou ID)
+  const subjectParam = searchParams.get('subject') || 'chimie'
+  
+  // Essayer d'abord par ID, puis par nom
+  let subject = getSubjectById(subjectParam)
+  if (!subject) {
+    subject = getSubjectByName(subjectParam)
+  }
+  // Si toujours pas trouvé, utiliser chimie par défaut
+  if (!subject) {
+    subject = getSubjectById('chimie')
+  }
+  
+  const subjectId = subject?.id || 'chimie'
   const chapters = getChaptersBySubject(subjectId)
 
   const [selectedChapter, setSelectedChapter] = useState(chapters[0]?.id || "")
@@ -23,7 +34,6 @@ export default function DatabaseGeneratorPage() {
   const [prompt, setPrompt] = useState("")
   const [loading, setLoading] = useState(false)
 
-  // Récupérer les parties du chapitre sélectionné
   const availableParts = getPartsByChapter(subjectId, selectedChapter)
 
   const addPart = (partId: string) => {
@@ -48,24 +58,31 @@ export default function DatabaseGeneratorPage() {
       const selectedChapterData = chapters.find(ch => ch.id === selectedChapter)
       const selectedPartsData = availableParts.filter(p => selectedParts.includes(p.id))
 
-      const response = await fetch('/api/generate-fiche', {
+      const response = await fetch('/api/chat-fiche', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          subject: subject?.name || 'Chimie',
-          chapter: selectedChapterData?.name || '',
-          parts: selectedPartsData.map(p => p.name),
-          difficulty: difficulty,
-          customPrompt: prompt
+          cours: subject?.name || 'Chimie',
+          chapitre: selectedChapterData?.name || '',
+          parties: selectedPartsData.map(p => p.name),
+          difficulte: difficulty,
+          promptPerso: prompt || undefined
         })
       })
 
       const data = await response.json()
 
       if (data.success) {
-        // Sauvegarder dans sessionStorage
-        sessionStorage.setItem('generatedFiche', JSON.stringify(data))
-        // Rediriger vers la page de visualisation
+        sessionStorage.setItem('generatedFiche', JSON.stringify({
+          subject: subject?.name,
+          subjectIcon: subject?.icon,
+          subjectColor: subject?.color,
+          chapter: selectedChapterData?.name,
+          parts: selectedPartsData.map(p => p.name),
+          difficulty: difficulty,
+          content: data.response,
+          createdAt: new Date().toISOString()
+        }))
         router.push('/fiches/generated')
       } else {
         alert('Erreur lors de la génération de la fiche')

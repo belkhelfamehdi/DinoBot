@@ -216,20 +216,7 @@ export default function CoursePage() {
         </Link>
 
         <div className="flex items-center gap-3 flex-1 justify-center">
-          <Link href="/accueil">
-            <img
-              src="/images/design-mode/dinobot-logo.png"
-              alt="Dinobot"
-              className="w-10 h-10 md:w-12 md:h-12 object-contain cursor-pointer hover:opacity-80 transition-opacity"
-            />
-          </Link>
-          <button
-            onClick={() => setSubjectSelectorOpen(true)}
-            className="bg-gradient-to-r from-[#6B8EFF] to-[#8BADFF] hover:from-[#5B7FFF] hover:to-[#7B9FFF] text-white px-4 md:px-6 py-2 md:py-2.5 rounded-full font-bold text-sm md:text-base flex items-center gap-2 transition-all shadow-lg hover:shadow-xl"
-          >
-            {selectedSubject}
-            <ChevronDown className="w-4 h-4" />
-          </button>
+
         </div>
 
         <button className="p-2 -mr-2 opacity-0 pointer-events-none">
