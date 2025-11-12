@@ -1,8 +1,20 @@
 "use client"
 
-import { useState, type TouchEvent } from "react"
+import { useState, useEffect, type TouchEvent } from "react"
 import { ChevronLeft, MoreVertical, X, ChevronDown, ChevronUp } from "lucide-react"
 import Link from "next/link"
+
+interface GeneratedData {
+  subject: string
+  chapter: string
+  revision: {
+    definitions: Array<{ title: string; definition: string }>
+    formulas: Array<{ title: string; explanation: string; example: string }>
+    examples: Array<{ question: string; answer: string }>
+    revisionCards: Array<{ title: string; methods: string[] }>
+    errors: Array<{ title: string; advice: string }>
+  }
+}
 
 export default function CoursePage() {
   const [selectedSubject, setSelectedSubject] = useState("Physique-Chimie")
@@ -12,20 +24,30 @@ export default function CoursePage() {
   const [section2Open, setSection2Open] = useState(true)
 
   const [exemplesOpen, setExemplesOpen] = useState(true)
-  const [currentExampleCard, setCurrentExampleCard] = useState(0) // Added for example card navigation
+  const [currentExampleCard, setCurrentExampleCard] = useState(0)
   const [definitionsOpen, setDefinitionsOpen] = useState(true)
-  const [currentDefinitionCard, setCurrentDefinitionCard] = useState(0) // Added for definition card navigation
+  const [currentDefinitionCard, setCurrentDefinitionCard] = useState(0)
   const [formulesOpen, setFormulesOpen] = useState(true)
-  const [currentFormulaCard, setCurrentFormulaCard] = useState(0) // Added for formula card navigation
+  const [currentFormulaCard, setCurrentFormulaCard] = useState(0)
   const [conseilsOpen, setConseilsOpen] = useState(true)
-  const [currentRevisionCard, setCurrentRevisionCard] = useState(0) // Added for revision card navigation
+  const [currentRevisionCard, setCurrentRevisionCard] = useState(0)
   const [demonstrationsOpen, setDemonstrationsOpen] = useState(true)
-  const [currentDemoCard, setCurrentDemoCard] = useState(0) // Added for demo card navigation
+  const [currentDemoCard, setCurrentDemoCard] = useState(0)
   const [erreursOpen, setErreursOpen] = useState(true)
-  const [currentErrorCard, setCurrentErrorCard] = useState(0) // Added for error card navigation
+  const [currentErrorCard, setCurrentErrorCard] = useState(0)
+  const [generatedData, setGeneratedData] = useState<GeneratedData | null>(null)
 
   const [touchStart, setTouchStart] = useState(0)
   const [touchEnd, setTouchEnd] = useState(0)
+
+  useEffect(() => {
+    const savedData = sessionStorage.getItem('generatedFicheData')
+    if (savedData) {
+      const data = JSON.parse(savedData)
+      setGeneratedData(data)
+      setSelectedSubject(data.subject || "Physique-Chimie")
+    }
+  }, [])
 
   const handleTouchStart = (e: TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX)
@@ -58,155 +80,34 @@ export default function CoursePage() {
     { name: "Français", icon: "📚", color: "from-[#FFD8D8] to-[#FFE8E8]" },
   ]
 
-  const exampleCards = [
-    {
-      title: "Titrage d'un acide fort par une base forte",
-      problem: "C(HCl) = 0,10 mol·L⁻¹, Vₐ = 25,0 mL. On ajoute V = 10,0 mL de NaOH 0,10 mol·L⁻¹. Calculer le pH.",
-      resolution: [
-        "n(HCl)ᵢₙᵢₜᵢₐₗ = 2,50 × 10⁻³ mol ; n(NaOH) ajoutée = 1,00 × 10⁻³ mol. Excès d'acide :",
-        "n(H₃O⁺)ₑₓcₑₛ = 1,50 × 10⁻³ mol.",
-        "Vₜₒₜₐₗ = 35,0 mL ⇒ [H₃O⁺]ₑₓcₑₛ = (1,50 × 10⁻³)/(35,0 × 10⁻³) =",
-        "∴ pH = −log₁₀(4,29 × 10⁻²) ≈ 1,37.",
-      ],
-      answer: "pH ≈ 1,37 (avant équivalence, milieu acide).",
-    },
-    {
-      title: "Calcul de pH d'une solution tampon",
-      problem: "Solution contenant CH₃COOH (0,1 M) et CH₃COO⁻ (0,1 M). pKₐ = 4,76. Calculer le pH.",
-      resolution: [
-        "Utiliser Henderson-Hasselbalch : pH = pKₐ + log₁₀([A⁻]/[AH])",
-        "pH = 4,76 + log₁₀(0,1/0,1) = 4,76 + log₁₀(1) = 4,76 + 0",
-      ],
-      answer: "pH = 4,76 (solution tampon à pH égal au pKₐ).",
-    },
-    {
-      title: "pH d'un acide faible",
-      problem: "Solution d'acide acétique CH₃COOH à 0,01 M. pKₐ = 4,76. Calculer le pH.",
-      resolution: [
-        "Pour un acide faible : pH ≈ ½(pKₐ − log₁₀(Cₐ))",
-        "pH ≈ ½(4,76 − log₁₀(0,01)) = ½(4,76 − (−2))",
-        "pH ≈ ½(4,76 + 2) = ½(6,76) = 3,38",
-      ],
-      answer: "pH ≈ 3,38 (milieu acide).",
-    },
-    {
-      title: "pH d'une base forte",
-      problem: "Solution de NaOH à 0,001 M. Calculer le pH.",
-      resolution: [
-        "Pour une base forte : pH = 14 + log₁₀(Cᵦ)",
-        "pH = 14 + log₁₀(0,001) = 14 + log₁₀(10⁻³)",
-        "pH = 14 + (−3) = 11",
-      ],
-      answer: "pH = 11 (milieu basique).",
-    },
-  ]
+  const exampleCards = generatedData?.revision.examples.map(ex => ({
+    title: ex.question,
+    problem: "",
+    resolution: [],
+    answer: ex.answer
+  })) || []
 
-  const formulaCards = [
-    {
-      title: "pH = −log₁₀([H₃O⁺]) et [H₃O⁺] = 10⁻ᵖᴴ",
-      explanation: "Définition du pH en solution aqueuse, issue de la concentration en ions oxonium.",
-      example: "Si [H₃O⁺] = 1,0 × 10⁻³ mol·L⁻¹ alors pH = 3,00.",
-    },
-    {
-      title: "Kₐ = [A⁻][H₃O⁺]/[AH]",
-      explanation: "Constante d'acidité pour un couple acide/base AH/A⁻.",
-      example: "Pour CH₃COOH/CH₃COO⁻, Kₐ = 1,8 × 10⁻⁵ donc pKₐ = 4,76.",
-    },
-    {
-      title: "pH = pKₐ + log₁₀([A⁻]/[AH])",
-      explanation: "Équation de Henderson-Hasselbalch pour les solutions tampons.",
-      example: "Si [A⁻] = [AH], alors pH = pKₐ.",
-    },
-  ]
+  const formulaCards = generatedData?.revision.formulas || []
 
-  const revisionCards = [
-    {
-      title:
-        "Avant tout calcul, identifie le modèle (acide/base fort(e) ou faible), pose l'équilibre et le domaine d'approximation. Cette préparation t'évite 80 % des erreurs et accélère tes résolutions.",
-      methods: [
-        "Refaire des cartes mémos des couples AH/A⁻ avec leurs pKₐ et domaines de prédominance.",
-        "S'entraîner à dériver Henderson-Hasselbalch et le lien pKₐ + pKᵦ = 14 pour les retenir durablement.",
-        "Réaliser des courbes de titrage simulées (tableur) pour visualiser avant/équivalence/après.",
-        "Vérifier systématiquement les ordres de grandeur : pH plausible et cohérent avec la nature de la solution.",
-        "S'exercer à choisir un indicateur en comparant zones de virage et sauts de pH.",
-      ],
-    },
-  ]
+  const revisionCards = generatedData?.revision.revisionCards || []
 
-  const demoCards = [
-    {
-      title: "Formule de Henderson-Hasselbalch",
-      hypotheses: [
-        "Solution contenant un acide faible AH et sa base conjuguée A⁻",
-        "Équilibre AH + H₂O ⇌ A⁻ + H₃O⁺ et activité ≈ concentration (solution diluée)",
-      ],
-      demonstration: [
-        "Par définition : Kₐ = [A⁻][H₃O⁺]/[AH]. On isole",
-        "[H₃O⁺] : [H₃O⁺] = Kₐ · [AH]/[A⁻]. En prenant",
-        "−log₁₀ des deux côtés :",
-        "−log₁₀([H₃O⁺]) = −log₁₀(Kₐ) − log₁₀([AH]/[A⁻])",
-        "∴ Donc pH = pKₐ + log₁₀([A⁻]/[AH]).",
-      ],
-      application:
-        "Calcul du pH d'un tampon et détermination des proportions de AH/A⁻ nécessaires pour atteindre un pH cible.",
-    },
-    {
-      title: "Relation Kₐ × Kᵦ = Kₑ",
-      hypotheses: ["Couple acide/base conjugué AH/A⁻", "Produit ionique de l'eau Kₑ = [H₃O⁺][OH⁻] = 10⁻¹⁴ à 25°C"],
-      demonstration: [
-        "Pour l'acide : AH + H₂O ⇌ A⁻ + H₃O⁺, Kₐ = [A⁻][H₃O⁺]/[AH]",
-        "Pour la base : A⁻ + H₂O ⇌ AH + OH⁻, Kᵦ = [AH][OH⁻]/[A⁻]",
-        "Multiplier : Kₐ × Kᵦ = ([A⁻][H₃O⁺]/[AH]) × ([AH][OH⁻]/[A⁻])",
-        "= [H₃O⁺][OH⁻] = Kₑ",
-        "∴ Donc pKₐ + pKᵦ = pKₑ = 14 à 25°C",
-      ],
-      application: "Permet de calculer Kᵦ connaissant Kₐ et vice-versa.",
-    },
-  ]
+  const demoCards: Array<{
+    title: string
+    hypotheses: string[]
+    demonstration: string[]
+    application: string
+  }> = []
 
-  const definitionCards = [
-    {
-      title: "Acide (Arrhenius)",
-      definition: "Espèce chimique qui libère des ions H⁺ en solution aqueuse.",
-    },
-    {
-      title: "Base (Arrhenius)",
-      definition: "Espèce chimique qui libère des ions OH⁻ en solution aqueuse.",
-    },
-    {
-      title: "Acide (Brønsted-Lowry)",
-      definition: "Espèce chimique capable de donner un proton H⁺.",
-    },
-    {
-      title: "Base (Brønsted-Lowry)",
-      definition: "Espèce chimique capable d'accepter un proton H⁺.",
-    },
-    {
-      title: "Solution tampon",
-      definition:
-        "Solution qui résiste aux variations de pH lors de l'ajout d'acide ou de base, composée d'un couple acide/base conjugué.",
-    },
-    {
-      title: "Équivalence (titrage)",
-      definition: "Point où les quantités de matière de l'acide et de la base sont en proportions stœchiométriques.",
-    },
-  ]
+  const definitionCards = generatedData?.revision.definitions || []
 
-  const errorCards = [
-    {
-      title: "Confondre concentration formelle C₀ et concentration à l'équilibre",
-      advice:
-        "Écris systématiquement les quantités de matière et le tableau d'avancement pour identifier la concentration effective après réaction ou dilution.",
-    },
-    {
-      title: "Oublier le produit ionique de l'eau",
-      advice: "Toujours vérifier que [H₃O⁺] × [OH⁻] = 10⁻¹⁴ à 25°C, surtout pour les bases.",
-    },
-    {
-      title: "Négliger les approximations",
-      advice: "Vérifier que l'approximation (α << 1 ou Cₐ/Kₐ > 100) est valide avant de simplifier les calculs.",
-    },
-  ]
+  const errorCards = generatedData?.revision.errors || []
+
+  const hasAnyData = exampleCards.length > 0 || 
+                     formulaCards.length > 0 || 
+                     revisionCards.length > 0 || 
+                     demoCards.length > 0 || 
+                     definitionCards.length > 0 || 
+                     errorCards.length > 0
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F5F0FF] via-[#FAF5FF] to-[#FFF8FF] flex flex-col">
@@ -254,7 +155,9 @@ export default function CoursePage() {
       </div>
 
       <div className="px-4 py-4 bg-gradient-to-b from-[#F0E4FF] to-transparent border-b border-purple-100">
-        <h1 className="text-2xl font-bold text-gray-900 text-center">Acides et bases</h1>
+        <h1 className="text-2xl font-bold text-gray-900 text-center">
+          {generatedData?.chapter || "Acides et bases"}
+        </h1>
       </div>
 
       <main className="flex-1 px-4 py-6 pb-24 overflow-y-auto bg-white">
@@ -441,6 +344,22 @@ export default function CoursePage() {
 
         {activeSubTab === "infos" && (
           <>
+            {!hasAnyData ? (
+              <div className="flex flex-col items-center justify-center py-12 px-4">
+                <div className="text-6xl mb-4">🦖</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">Aucun contenu disponible</h3>
+                <p className="text-gray-600 text-center mb-6">
+                  Génère d'abord du contenu depuis le formulaire de création de fiche.
+                </p>
+                <Link
+                  href="/fiches/creer-fiche/database"
+                  className="bg-gradient-to-r from-[#6B8EFF] to-[#8BADFF] hover:from-[#5B7FFF] hover:to-[#7B9FFF] text-white px-6 py-3 rounded-full font-bold shadow-lg hover:shadow-xl transition-all"
+                >
+                  Créer une fiche
+                </Link>
+              </div>
+            ) : (
+              <>
             <div className="mb-6">
               <button
                 onClick={() => setExemplesOpen(!exemplesOpen)}
@@ -795,6 +714,8 @@ export default function CoursePage() {
                 </div>
               )}
             </div>
+              </>
+            )}
           </>
         )}
       </main>

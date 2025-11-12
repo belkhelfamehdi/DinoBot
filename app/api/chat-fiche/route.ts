@@ -39,83 +39,81 @@ export async function POST(req: Request) {
   }
 
   const systemPrompt = `Tu es DinoBot, un assistant pédagogique sympathique et expert en ${cours}. 
-Tu dois créer une fiche de révision complète ET des flashcards sur le chapitre "${chapitre}".
+Tu dois créer du contenu pédagogique complet sur le chapitre "${chapitre}".
 
 ${contexte ? `Contenu du cours à utiliser :\n${contexte}` : ""}
 
-INSTRUCTIONS - Tu dois générer 2 formats distincts :
+IMPORTANT - Tu dois générer un JSON avec 3 parties :
 
-════════════════════════════════════════
-📚 PARTIE 1 : FICHE DE RÉVISION
-════════════════════════════════════════
+{
+  "revision": {
+    "definitions": [
+      {
+        "title": "Titre du concept",
+        "definition": "Explication claire et concise"
+      }
+    ],
+    "formulas": [
+      {
+        "title": "Formule mathématique",
+        "explanation": "Ce que représente la formule",
+        "example": "Application numérique concrète"
+      }
+    ],
+    "examples": [
+      {
+        "question": "Exercice concret",
+        "answer": "Solution détaillée étape par étape"
+      }
+    ],
+    "revisionCards": [
+      {
+        "title": "Conseil méthodologique principal",
+        "methods": ["Méthode 1", "Méthode 2", "Méthode 3", "Méthode 4", "Méthode 5"]
+      }
+    ],
+    "errors": [
+      {
+        "title": "Description de l'erreur fréquente",
+        "advice": "Comment l'éviter"
+      }
+    ]
+  },
+  "flashcards": [
+    {
+      "question": "Question concise et directe",
+      "answer": "Réponse précise en 1-2 phrases max"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "Question du quiz",
+      "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
+      "correctAnswer": 0,
+      "explanation": "Explication de la bonne réponse"
+    }
+  ]
+}
 
-Structure OBLIGATOIRE avec sections cliquables :
-
-## 📝 DÉFINITIONS
-Crée 4-6 cartes de définitions (format compact pour affichage en cartes) :
-**Titre :** [Nom du concept]
-**Définition :** [Explication claire en 1-2 phrases]
-
-## 📐 FORMULES CLÉS
-Crée 3-4 cartes de formules avec applications :
-**Formule :** [Expression mathématique]
-**Explication :** [Ce que représente la formule]
-**Exemple :** [Application numérique concrète]
-
-## 💡 EXEMPLES D'APPLICATION
-Crée 3-4 exercices types question/réponse :
-**Question :** [Exercice concret]
-**Réponse :** [Solution détaillée étape par étape]
-
-## 🎯 POINTS CLÉS À RETENIR
-Crée 1-2 conseils méthodologiques :
-**Conseil :** [Conseil principal en 1 phrase]
-**Méthodes :**
-• [Méthode pratique 1]
-• [Méthode pratique 2]
-• [Méthode pratique 3]
-• [Méthode pratique 4]
-• [Méthode pratique 5]
-
-## ⚠️ ERREURS COURANTES
-Crée 2-3 pièges à éviter :
-**Erreur :** [Description de l'erreur fréquente]
-**Conseil :** [Comment l'éviter]
-
-════════════════════════════════════════
-🎴 PARTIE 2 : FLASHCARDS
-════════════════════════════════════════
-
-Crée 8-12 flashcards (questions courtes, réponses claires) :
-
-[FLASHCARD 1]
-Question: [Question concise et directe]
-Réponse: [Réponse précise en 1-2 phrases max]
-
-[FLASHCARD 2]
-Question: [Question concise et directe]
-Réponse: [Réponse précise en 1-2 phrases max]
-
-... (continue jusqu'à 8-12 flashcards)
-
-════════════════════════════════════════
-
-Consignes supplémentaires :
+Consignes :
+- Crée 4-6 définitions
+- Crée 3-4 formules avec exemples
+- Crée 3-4 exercices types
+- Crée 1-2 conseils de révision avec 5 méthodes chacun
+- Crée 2-3 erreurs courantes
+- Crée 8-12 flashcards
+- Crée 6-10 questions de quiz (4 options chacune)
 - Niveau de difficulté : ${difficulte}/3
 - ${niveauDifficulte}
 ${promptPerso ? `- Demandes spécifiques : ${promptPerso}` : ""}
 
-IMPORTANT : 
-- Sépare bien les 2 parties avec les délimiteurs ════
-- Utilise les emojis et formats EXACTEMENT comme indiqué
-- Les flashcards doivent être courtes et mémorisables
-- La fiche doit être détaillée et complète`
+RETOURNE UNIQUEMENT LE JSON, SANS MARKDOWN NI TEXTE SUPPLÉMENTAIRE.`
 
   const result = streamText({
     model: groq("llama-3.3-70b-versatile"),
     messages: [
       { role: "system", content: systemPrompt },
-      { role: "user", content: "Génère maintenant la fiche de révision complète." }
+      { role: "user", content: "Génère le JSON complet avec revision, flashcards et quiz." }
     ],
     temperature: 0.7,
   })
@@ -127,9 +125,24 @@ IMPORTANT :
     fullText += chunk
   }
 
+  // Parser le JSON
+  let parsedData
+  try {
+    // Nettoyer le texte (enlever les markdown code blocks si présents)
+    const cleanText = fullText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+    parsedData = JSON.parse(cleanText)
+  } catch (error) {
+    console.error("Erreur de parsing JSON:", error)
+    return Response.json({ 
+      success: false,
+      error: "Format de réponse invalide",
+      rawResponse: fullText
+    }, { status: 500 })
+  }
+
   return Response.json({ 
     success: true,
-    response: fullText,
+    data: parsedData,
     metadata: {
       cours,
       chapitre,

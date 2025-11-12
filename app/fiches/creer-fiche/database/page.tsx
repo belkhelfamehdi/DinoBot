@@ -73,17 +73,30 @@ export default function DatabaseGeneratorPage() {
       const data = await response.json()
 
       if (data.success) {
-        sessionStorage.setItem('generatedFiche', JSON.stringify({
+        const timestamp = Date.now()
+        const ficheKey = `generatedFicheData_${timestamp}`
+        
+        // Stocker les données générées pour les pages revision et flashcard
+        sessionStorage.setItem(ficheKey, JSON.stringify({
           subject: subject?.name,
+          subjectId: subject?.id,
           subjectIcon: subject?.icon,
           subjectColor: subject?.color,
+          subjectBgColor: subject?.bgColor,
           chapter: selectedChapterData?.name,
           parts: selectedPartsData.map(p => p.name),
           difficulty: difficulty,
-          content: data.response,
+          revision: data.data.revision,
+          flashcards: data.data.flashcards,
+          quiz: data.data.quiz,
           createdAt: new Date().toISOString()
         }))
-        router.push('/fiches/generated')
+        
+        // Stocker aussi comme clé active pour les pages de visualisation
+        sessionStorage.setItem('generatedFicheData', sessionStorage.getItem(ficheKey) || '')
+        
+        // Rediriger vers la page de révision
+        router.push('/fiches/revision')
       } else {
         alert('Erreur lors de la génération de la fiche')
       }

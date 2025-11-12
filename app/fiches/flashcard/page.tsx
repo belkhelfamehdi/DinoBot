@@ -1,14 +1,30 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChevronLeft, X, ChevronDown } from "lucide-react"
 import Link from "next/link"
+
+interface GeneratedData {
+  subject: string
+  chapter: string
+  flashcards: Array<{ question: string; answer: string }>
+}
 
 export default function FlashcardPage() {
   const [selectedSubject, setSelectedSubject] = useState("Physique-Chimie")
   const [subjectSelectorOpen, setSubjectSelectorOpen] = useState(false)
   const [currentFlashcard, setCurrentFlashcard] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
+  const [generatedData, setGeneratedData] = useState<GeneratedData | null>(null)
+
+  useEffect(() => {
+    const savedData = sessionStorage.getItem('generatedFicheData')
+    if (savedData) {
+      const data = JSON.parse(savedData)
+      setGeneratedData(data)
+      setSelectedSubject(data.subject || "Physique-Chimie")
+    }
+  }, [])
 
   const subjects = [
     { name: "Mathématiques", icon: "📐", color: "from-[#C8D8FF] to-[#D8E4FF]" },
@@ -17,43 +33,7 @@ export default function FlashcardPage() {
     { name: "Français", icon: "📚", color: "from-[#FFD8D8] to-[#FFE8E8]" },
   ]
 
-  const flashcards = [
-    {
-      question: "Quelle est la définition d'un acide selon Arrhenius ?",
-      answer: "Un acide libère des ions H⁺ (protons) en solution aqueuse. Exemple : HCl → H⁺ + Cl⁻",
-    },
-    {
-      question: "Comment calculer le pH d'une solution ?",
-      answer: "pH = −log₁₀[H₃O⁺] où [H₃O⁺] est la concentration en ions oxonium en mol/L",
-    },
-    {
-      question: "Qu'est-ce qu'une solution tampon ?",
-      answer:
-        "Une solution qui résiste aux variations de pH lors de l'ajout modéré d'acide ou de base. Elle contient un acide faible et sa base conjuguée.",
-    },
-    {
-      question: "Quelle est la différence entre un acide fort et un acide faible ?",
-      answer:
-        "Un acide fort se dissocie totalement en solution (HCl, H₂SO₄), tandis qu'un acide faible se dissocie partiellement (CH₃COOH).",
-    },
-    {
-      question: "Que représente le pKa ?",
-      answer: "Le pKa est le pH auquel un acide est dissocié à 50%. Plus le pKa est faible, plus l'acide est fort.",
-    },
-    {
-      question: "Qu'est-ce qu'un couple acide-base ?",
-      answer:
-        "Deux espèces chimiques qui se transforment l'une en l'autre par transfert d'un proton H⁺. Notation : AH/A⁻",
-    },
-    {
-      question: "Comment reconnaître une solution acide ?",
-      answer: "Une solution est acide si son pH < 7. Elle contient plus d'ions H₃O⁺ que d'ions OH⁻.",
-    },
-    {
-      question: "Quelle est la relation entre pH et pOH ?",
-      answer: "pH + pOH = 14 (à 25°C). Cette relation permet de calculer l'un à partir de l'autre.",
-    },
-  ]
+  const flashcards = generatedData?.flashcards || []
 
   const handleFlashcardClick = () => {
     setIsFlipped(!isFlipped)
@@ -113,17 +93,35 @@ export default function FlashcardPage() {
       </div>
 
       <div className="px-3 sm:px-4 py-3 sm:py-4 bg-gradient-to-b from-[#F0E4FF] to-transparent border-b border-purple-100">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 text-center">Acides et bases</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 text-center">
+          {generatedData?.chapter || "Acides et bases"}
+        </h1>
       </div>
 
       <main className="flex-1 px-3 sm:px-4 py-4 sm:py-6 pb-20 sm:pb-24 overflow-y-auto bg-white">
         <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Les cartes mémos de DinoBot</h2>
 
-        <div className="mb-4 text-center">
-          <span className="text-sm sm:text-base font-semibold text-purple-600">
-            Carte {currentFlashcard + 1} sur {flashcards.length}
-          </span>
-        </div>
+        {flashcards.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 px-4">
+            <div className="text-6xl mb-4">🦖</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">Aucune flashcard disponible</h3>
+            <p className="text-gray-600 text-center mb-6">
+              Génère d'abord du contenu depuis le formulaire de création de fiche.
+            </p>
+            <Link
+              href="/fiches/creer-fiche/database"
+              className="bg-gradient-to-r from-[#6B8EFF] to-[#8BADFF] hover:from-[#5B7FFF] hover:to-[#7B9FFF] text-white px-6 py-3 rounded-full font-bold shadow-lg hover:shadow-xl transition-all"
+            >
+              Créer une fiche
+            </Link>
+          </div>
+        ) : (
+          <>
+            <div className="mb-4 text-center">
+              <span className="text-sm sm:text-base font-semibold text-purple-600">
+                Carte {currentFlashcard + 1} sur {flashcards.length}
+              </span>
+            </div>
 
         <div className="relative mb-4 sm:mb-6">
           <div
@@ -223,6 +221,8 @@ export default function FlashcardPage() {
             <li>✓ Notez les cartes difficiles pour y revenir</li>
           </ul>
         </div>
+          </>
+        )}
       </main>
 
       {subjectSelectorOpen && (

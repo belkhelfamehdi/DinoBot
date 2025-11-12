@@ -1,14 +1,53 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChevronDown, Check, Plus } from "lucide-react"
 import Link from "next/link"
 import { coursesData } from "@/data/courses"
-import { fichesData, subjectColors } from "@/data/fiches"
+import { subjectColors } from "@/data/fiches"
+
+interface SavedFiche {
+  subject: string
+  subjectId: string
+  chapter: string
+  createdAt: string
+  subjectIcon: string
+  ficheKey?: string
+}
 
 export default function ToutesLesFichesPage() {
   const [isSubjectModalOpen, setIsSubjectModalOpen] = useState(false)
   const [selectedSubject, setSelectedSubject] = useState("Toutes")
+  const [savedFiches, setSavedFiches] = useState<SavedFiche[]>([])
+
+  useEffect(() => {
+    // Charger toutes les fiches sauvegardées depuis sessionStorage
+    const allFiches: SavedFiche[] = []
+    
+    // Parcourir tous les items du sessionStorage
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i)
+      if (key?.startsWith('generatedFicheData_')) {
+        try {
+          const data = JSON.parse(sessionStorage.getItem(key) || '{}')
+          if (data.chapter) {
+            allFiches.push({
+              subject: data.subject || "Physique-Chimie",
+              subjectId: data.subjectId || "physique-chimie",
+              chapter: data.chapter,
+              createdAt: data.createdAt || new Date().toISOString(),
+              subjectIcon: data.subjectIcon || "⚗️",
+              ficheKey: key // Stocker la clé pour retrouver la fiche plus tard
+            })
+          }
+        } catch (e) {
+          console.error('Error parsing saved fiche:', e)
+        }
+      }
+    }
+    
+    setSavedFiches(allFiches)
+  }, [])
 
   const subjects = coursesData.subjects.map((subject: { id: any; name: any; icon: any; bgColor: any; color: any }) => {
     return {
@@ -20,10 +59,54 @@ export default function ToutesLesFichesPage() {
     }
   })
 
+  // Grouper les fiches par date
+  const groupedByDate: { [key: string]: any[] } = {}
+  
+  savedFiches.forEach(fiche => {
+    const date = new Date(fiche.createdAt)
+    const today = new Date()
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
+    
+    let dateKey = ""
+    if (date.toDateString() === today.toDateString()) {
+      dateKey = "Aujourd'hui"
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      dateKey = "Hier"
+    } else {
+      dateKey = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
+    }
+    
+    if (!groupedByDate[dateKey]) {
+      groupedByDate[dateKey] = []
+    }
+    
+    const colors = subjectColors[fiche.subjectId] || subjectColors['physique-chimie']
+    
+    groupedByDate[dateKey].push({
+      id: `fiche-${date.getTime()}`,
+      ficheKey: fiche.ficheKey || `generatedFicheData_${date.getTime()}`,
+      subject: fiche.subject,
+      subjectId: fiche.subjectId,
+      title: fiche.chapter,
+      subtitle: "Généré par IA",
+      type: "fiche",
+      createdAt: fiche.createdAt,
+      icon: fiche.subjectIcon,
+      colors: colors
+    })
+  })
+
+  // Convertir en format de tableau
+  const allFiches = Object.keys(groupedByDate).map(date => ({
+    date,
+    items: groupedByDate[date]
+  }))
+
   // Filtrer les fiches par matière sélectionnée
   const filteredFiches = selectedSubject === "Toutes"
-    ? fichesData
-    : fichesData.map(group => ({
+    ? allFiches
+    : allFiches.map(group => ({
       date: group.date,
       items: group.items.filter(fiche => fiche.subject === selectedSubject)
     })).filter(group => group.items.length > 0)
@@ -112,11 +195,23 @@ export default function ToutesLesFichesPage() {
                   </h3>
                   <div className="space-y-2.5 sm:space-y-3">
                     {dateGroup.items.map((fiche) => {
-                      const colors = subjectColors[fiche.subjectId]
+                      const colors = fiche.colors
+                      
+                      const handleFicheClick = (e: React.MouseEvent) => {
+                        e.preventDefault()
+                        // Charger les données de cette fiche spécifique dans la clé active
+                        const ficheData = sessionStorage.getItem(fiche.ficheKey)
+                        if (ficheData) {
+                          sessionStorage.setItem('generatedFicheData', ficheData)
+                          window.location.href = '/fiches/revision'
+                        }
+                      }
+                      
                       return (
                         <Link
                           key={fiche.id}
                           href="/fiches/revision"
+                          onClick={handleFicheClick}
                           className="block bg-white rounded-[1.5rem] shadow-md hover:shadow-lg transition-all overflow-hidden group"
                         >
                           <div className={`bg-gradient-to-r ${colors.gradient} px-3 sm:px-4 py-2 sm:py-2.5`}>
