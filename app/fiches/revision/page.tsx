@@ -1,86 +1,51 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import Link from "next/link"
 import { Printer, CheckCircle2, XCircle } from "lucide-react"
 import CoursePage from "@/components/course-page"
+
+interface GeneratedData {
+  subject: string
+  subjectId: string
+  subjectIcon: string
+  subjectColor: string
+  subjectBgColor: string
+  chapter: string
+  parts: string[]
+  difficulty: number
+  revision: {
+    definitions: Array<{ title: string; definition: string }>
+    formulas: Array<{ title: string; explanation: string; example: string }>
+    examples: Array<{ question: string; answer: string }>
+    revisionCards: Array<{ title: string; methods: string[] }>
+    errors: Array<{ title: string; advice: string }>
+  }
+  flashcards: Array<{ question: string; answer: string }>
+  quiz: Array<{
+    question: string
+    options: string[]
+    correctAnswer: number
+    explanation: string
+  }>
+  createdAt: string
+}
 
 export default function RevisionPage() {
   const [mode, setMode] = useState<"fiche" | "quizz">("fiche")
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({})
   const [showResults, setShowResults] = useState(false)
+  const [generatedData, setGeneratedData] = useState<GeneratedData | null>(null)
 
-  const quizQuestions = [
-    {
-      question: "Quelle est la définition d'un acide selon Brønsted-Lowry ?",
-      options: [
-        "Une espèce qui libère des ions OH⁻",
-        "Une espèce qui accepte un proton H⁺",
-        "Une espèce qui donne un proton H⁺",
-        "Une espèce qui libère des ions H⁺",
-      ],
-      correctAnswer: 2,
-      explanation: "Selon Brønsted-Lowry, un acide est un donneur de proton H⁺.",
-    },
-    {
-      question: "Quelle formule permet de calculer le pH d'une solution ?",
-      options: ["pH = log₁₀[H₃O⁺]", "pH = −log₁₀[H₃O⁺]", "pH = [H₃O⁺] × 10", "pH = 14 − [H₃O⁺]"],
-      correctAnswer: 1,
-      explanation: "Le pH est défini par pH = −log₁₀[H₃O⁺].",
-    },
-    {
-      question: "Qu'est-ce qu'une solution tampon ?",
-      options: [
-        "Une solution qui change rapidement de pH",
-        "Une solution qui résiste aux variations de pH",
-        "Une solution avec un pH toujours égal à 7",
-        "Une solution contenant uniquement des acides forts",
-      ],
-      correctAnswer: 1,
-      explanation:
-        "Une solution tampon résiste aux variations de pH grâce à un couple acide/base conjugué en proportions comparables.",
-    },
-    {
-      question: "Quelle est l'équation de Henderson-Hasselbalch ?",
-      options: [
-        "pH = pKₐ − log₁₀([A⁻]/[AH])",
-        "pH = pKₐ + log₁₀([AH]/[A⁻])",
-        "pH = pKₐ + log₁₀([A⁻]/[AH])",
-        "pH = pKₐ × [A⁻]/[AH]",
-      ],
-      correctAnswer: 2,
-      explanation: "L'équation de Henderson-Hasselbalch est pH = pKₐ + log₁₀([A⁻]/[AH]).",
-    },
-    {
-      question: "Pour un acide fort, comment calcule-t-on le pH ?",
-      options: ["pH = 14 + log₁₀(Cₐ)", "pH = −log₁₀(Cₐ)", "pH = ½(pKₐ − log₁₀(Cₐ))", "pH = pKₐ"],
-      correctAnswer: 1,
-      explanation: "Pour un acide fort qui se dissocie totalement, pH = −log₁₀(Cₐ) où Cₐ est la concentration.",
-    },
-    {
-      question: "Quelle est la valeur du produit ionique de l'eau Kₑ à 25°C ?",
-      options: ["10⁻⁷", "10⁻¹⁴", "10⁻¹", "14"],
-      correctAnswer: 1,
-      explanation: "Le produit ionique de l'eau Kₑ = [H₃O⁺][OH⁻] = 10⁻¹⁴ à 25°C.",
-    },
-    {
-      question: "Qu'est-ce qu'une espèce amphotère ?",
-      options: [
-        "Une espèce qui ne réagit ni comme acide ni comme base",
-        "Une espèce qui peut agir comme acide ou comme base",
-        "Une espèce qui est toujours neutre",
-        "Une espèce qui a un pH de 7",
-      ],
-      correctAnswer: 1,
-      explanation: "Une espèce amphotère peut agir comme acide ou comme base selon le milieu (ex: H₂O, HCO₃⁻).",
-    },
-    {
-      question: "Si le pKₐ d'un acide est petit, que peut-on dire de cet acide ?",
-      options: ["C'est un acide faible", "C'est un acide fort", "C'est une base forte", "Son pH est élevé"],
-      correctAnswer: 1,
-      explanation: "Plus le pKₐ est petit, plus l'acide est fort car il se dissocie facilement.",
-    },
-  ]
+  useEffect(() => {
+    const savedData = sessionStorage.getItem('generatedFicheData')
+    if (savedData) {
+      setGeneratedData(JSON.parse(savedData))
+    }
+  }, [])
+
+  const quizQuestions = generatedData?.quiz || []
 
   const handleAnswerSelect = (questionIndex: number, answerIndex: number) => {
     if (!showResults) {
@@ -154,7 +119,23 @@ export default function RevisionPage() {
 
       {mode === "quizz" && (
         <div className="px-4 py-6 max-w-3xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+          {quizQuestions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 px-4">
+              <div className="text-6xl mb-4">🦖</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">Aucun quiz disponible</h3>
+              <p className="text-gray-600 text-center mb-6">
+                Génère d'abord du contenu depuis le formulaire de création de fiche.
+              </p>
+              <Link
+                href="/fiches/creer-fiche/database"
+                className="bg-gradient-to-r from-[#6B8EFF] to-[#8BADFF] hover:from-[#5B7FFF] hover:to-[#7B9FFF] text-white px-6 py-3 rounded-full font-bold shadow-lg hover:shadow-xl transition-all"
+              >
+                Créer une fiche
+              </Link>
+            </div>
+          ) : (
+            <>
+              <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Quizz : Acides et Bases</h1>
               {showResults && (
@@ -258,6 +239,8 @@ export default function RevisionPage() {
               </button>
             )}
           </div>
+            </>
+          )}
         </div>
       )}
 

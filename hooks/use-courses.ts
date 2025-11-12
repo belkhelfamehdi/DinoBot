@@ -38,6 +38,10 @@ export function useCourses() {
     return data.subjects.find(s => s.id === subjectId)
   }
 
+  const getSubjectByName = (subjectName: string) => {
+    return data.subjects.find(s => s.name.toLowerCase() === subjectName.toLowerCase())
+  }
+
   const getChaptersBySubject = (subjectId: string) => {
     const subject = getSubjectById(subjectId)
     return subject?.chapters || []
@@ -97,6 +101,7 @@ export function useCourses() {
     subjects: data.subjects,
     getSubjects,
     getSubjectById,
+    getSubjectByName,
     getChaptersBySubject,
     getChapterById,
     getPartsByChapter,
