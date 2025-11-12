@@ -5,7 +5,7 @@ import { coursesData } from "@/data/courses"
 export const maxDuration = 30
 
 export async function POST(req: Request) {
-  const { 
+  const {
     cours,
     chapitre,
     parties,
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   // Récupérer le contenu du cours depuis la data
   const subject = coursesData.subjects.find(s => s.name === cours)
   const chapter = subject?.chapters.find(c => c.name === chapitre)
-  
+
   // Construire le contexte à partir des parties sélectionnées
   let contexte = ""
   if (chapter && parties && parties.length > 0) {
@@ -133,14 +133,14 @@ RETOURNE UNIQUEMENT LE JSON, SANS MARKDOWN NI TEXTE SUPPLÉMENTAIRE.`
     parsedData = JSON.parse(cleanText)
   } catch (error) {
     console.error("Erreur de parsing JSON:", error)
-    return Response.json({ 
+    return Response.json({
       success: false,
       error: "Format de réponse invalide",
       rawResponse: fullText
     }, { status: 500 })
   }
 
-  return Response.json({ 
+  return Response.json({
     success: true,
     data: parsedData,
     metadata: {
