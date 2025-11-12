@@ -3,65 +3,55 @@
 import { useState } from "react"
 import { ChevronDown, Check, Plus } from "lucide-react"
 import Link from "next/link"
+import { coursesData } from "@/data/courses"
+import { fichesData, subjectColors } from "@/data/fiches"
 
 export default function ToutesLesFichesPage() {
   const [isSubjectModalOpen, setIsSubjectModalOpen] = useState(false)
-  const [selectedSubject, setSelectedSubject] = useState("Mathématiques")
+  const [selectedSubject, setSelectedSubject] = useState("Toutes")
 
-  const subjects = [
-    { name: "Mathématiques", icon: "📐", color: "text-[#6B8EFF]", bgColor: "bg-[#EEF2FF]" },
-    { name: "Physique-Chimie", icon: "🧪", color: "text-[#A855F7]", bgColor: "bg-[#FAF5FF]" },
-    { name: "SVT", icon: "🌿", color: "text-[#10B981]", bgColor: "bg-[#ECFDF5]" },
-    { name: "Français", icon: "📚", color: "text-[#EF4444]", bgColor: "bg-[#FEF2F2]" },
-  ]
+  const subjects = coursesData.subjects.map((subject: { id: any; name: any; icon: any; bgColor: any; color: any }) => {
+    return {
+      id: subject.id,
+      name: subject.name,
+      icon: subject.icon,
+      bgColor: subject.bgColor,
+      color: subject.color,
+    }
+  })
 
-  const fiches = [
-    {
-      date: "jeudi, 30 oct.",
-      items: [
-        {
-          subject: "Physique-Chimie",
-          subjectColor: "from-blue-500 to-blue-600",
-          type: "Fiche - Interro",
-          title: "Acides et bases (Terminale)",
-          subtitle: "Concepts, calculs et méthodes",
-          time: "jeudi 30 oct. à 8h38",
-          icon: "📘",
-          iconBg: "from-blue-100 to-blue-50",
-        },
-      ],
-    },
-    {
-      date: "dimanche, 19 oct.",
-      items: [
-        {
-          subject: "Mathématiques",
-          subjectColor: "from-cyan-500 to-cyan-600",
-          type: "Fiche - Révision",
-          title: "Fonctions exponentielles",
-          subtitle: "Propriétés et applications",
-          time: "dimanche 19 oct. à 16h06",
-          icon: "📐",
-          iconBg: "from-cyan-100 to-cyan-50",
-        },
-      ],
-    },
-    {
-      date: "lundi, 13 oct.",
-      items: [
-        {
-          subject: "Français",
-          subjectColor: "from-purple-500 to-purple-600",
-          type: "FlashCard",
-          title: "Les figures de style",
-          subtitle: "Métaphore, comparaison, hyperbole",
-          time: "lundi 13 oct. à 10h15",
-          icon: "📖",
-          iconBg: "from-purple-100 to-purple-50",
-        },
-      ],
-    },
-  ]
+  // Filtrer les fiches par matière sélectionnée
+  const filteredFiches = selectedSubject === "Toutes" 
+    ? fichesData 
+    : fichesData.map(group => ({
+        date: group.date,
+        items: group.items.filter(fiche => fiche.subject === selectedSubject)
+      })).filter(group => group.items.length > 0)
+
+  // Formater le temps d'affichage
+  const formatTime = (dateStr: string) => {
+    const date = new Date(dateStr)
+    const days = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"]
+    const months = ["jan.", "fév.", "mars", "avril", "mai", "juin", "juil.", "août", "sep.", "oct.", "nov.", "déc."]
+    
+    const dayName = days[date.getDay()]
+    const day = date.getDate()
+    const month = months[date.getMonth()]
+    const hours = date.getHours()
+    const minutes = date.getMinutes().toString().padStart(2, '0')
+    
+    return `${dayName} ${day} ${month} à ${hours}h${minutes}`
+  }
+
+  // Obtenir le type de fiche formaté
+  const getTypeLabel = (type: string) => {
+    switch(type) {
+      case "fiche": return "Fiche - Révision"
+      case "flashcard": return "FlashCard"
+      case "quiz": return "Quiz"
+      default: return "Fiche"
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#F5F5F0] pb-8">
@@ -69,7 +59,7 @@ export default function ToutesLesFichesPage() {
         <div className="flex items-center gap-2 sm:gap-3">
           <Link href="/">
             <img
-              src="/images/design-mode/dinobot-logo.jpg"
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dinobot-logo-FNB6LHXRYN4MNMmqlZz3BvbXUAwPPz.png"
               alt="Dinobot"
               className="w-9 h-9 sm:w-10 sm:h-10 object-contain flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
             />
@@ -104,47 +94,64 @@ export default function ToutesLesFichesPage() {
           </h2>
 
           <div className="space-y-6 sm:space-y-8">
-            {fiches.map((dateGroup, idx) => (
-              <div key={idx}>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4 tracking-tight">
-                  {dateGroup.date}
-                </h3>
-                <div className="space-y-2.5 sm:space-y-3">
-                  {dateGroup.items.map((fiche, ficheIdx) => (
-                    <Link
-                      key={ficheIdx}
-                      href="/fiches/revision"
-                      className="block bg-white rounded-[1.5rem] shadow-md hover:shadow-lg transition-all overflow-hidden group"
-                    >
-                      <div className={`bg-gradient-to-r ${fiche.subjectColor} px-3 sm:px-4 py-2 sm:py-2.5`}>
-                        <p className="text-white text-xs sm:text-sm font-bold tracking-tight">
-                          {fiche.subject} - {fiche.type}
-                        </p>
-                      </div>
-                      <div className="px-3 sm:px-4 py-3 sm:py-4 flex items-center gap-2.5 sm:gap-3">
-                        <div
-                          className={`w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br ${fiche.iconBg} rounded-[1rem] flex items-center justify-center flex-shrink-0 shadow-sm`}
-                        >
-                          <div className="text-lg sm:text-xl">{fiche.icon}</div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs sm:text-sm text-slate-500 font-medium mb-0.5">{fiche.time}</p>
-                          <p className="text-sm sm:text-base font-bold text-slate-900 tracking-tight leading-tight">
-                            {fiche.title}
-                          </p>
-                          <p className="text-xs sm:text-sm text-slate-600 mt-0.5">{fiche.subtitle}</p>
-                        </div>
-                        <div className="text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all flex-shrink-0">
-                          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+            {filteredFiches.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">📝</div>
+                <p className="text-slate-500 text-lg font-medium">
+                  Aucune fiche pour cette matière
+                </p>
+                <p className="text-slate-400 text-sm mt-2">
+                  Crée ta première fiche !
+                </p>
               </div>
-            ))}
+            ) : (
+              filteredFiches.map((dateGroup, idx) => (
+                <div key={idx}>
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4 tracking-tight">
+                    {dateGroup.date}
+                  </h3>
+                  <div className="space-y-2.5 sm:space-y-3">
+                    {dateGroup.items.map((fiche) => {
+                      const colors = subjectColors[fiche.subjectId]
+                      return (
+                        <Link
+                          key={fiche.id}
+                          href="/fiches/revision"
+                          className="block bg-white rounded-[1.5rem] shadow-md hover:shadow-lg transition-all overflow-hidden group"
+                        >
+                          <div className={`bg-gradient-to-r ${colors.gradient} px-3 sm:px-4 py-2 sm:py-2.5`}>
+                            <p className="text-white text-xs sm:text-sm font-bold tracking-tight">
+                              {fiche.subject} - {getTypeLabel(fiche.type)}
+                            </p>
+                          </div>
+                          <div className="px-3 sm:px-4 py-3 sm:py-4 flex items-center gap-2.5 sm:gap-3">
+                            <div
+                              className={`w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br ${colors.iconBg} rounded-[1rem] flex items-center justify-center flex-shrink-0 shadow-sm`}
+                            >
+                              <div className="text-lg sm:text-xl">{fiche.icon}</div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs sm:text-sm text-slate-500 font-medium mb-0.5">
+                                {formatTime(fiche.createdAt)}
+                              </p>
+                              <p className="text-sm sm:text-base font-bold text-slate-900 tracking-tight leading-tight">
+                                {fiche.title}
+                              </p>
+                              <p className="text-xs sm:text-sm text-slate-600 mt-0.5">{fiche.subtitle}</p>
+                            </div>
+                            <div className="text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all flex-shrink-0">
+                              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </div>
+                          </div>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </main>
@@ -157,6 +164,21 @@ export default function ToutesLesFichesPage() {
               <h3 className="text-xl font-bold text-slate-900 tracking-tight">Choisis ta matière</h3>
             </div>
             <div className="p-6 space-y-2 max-h-[70vh] overflow-y-auto">
+              <button
+                onClick={() => {
+                  setSelectedSubject("Toutes")
+                  setIsSubjectModalOpen(false)
+                }}
+                className={`w-full flex items-center gap-4 p-4 rounded-[1.25rem] transition-all hover:scale-[1.01] ${
+                  selectedSubject === "Toutes" ? "bg-slate-100" : "bg-white hover:bg-slate-50"
+                }`}
+              >
+                <div className="text-3xl">📚</div>
+                <span className="text-base font-bold tracking-tight flex-1 text-left text-slate-700">
+                  Toutes les matières
+                </span>
+                {selectedSubject === "Toutes" && <Check className="w-6 h-6 text-slate-700" />}
+              </button>
               {subjects.map((subject) => {
                 const isSelected = selectedSubject === subject.name
                 return (

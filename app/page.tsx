@@ -63,7 +63,23 @@ export default function HomePage() {
                 <span className="text-xs sm:text-sm text-slate-600 block">Consultez toutes vos fiches</span>
               </div>
             </Link>
+
+            <Link
+              href="/cours"
+              className="group relative flex flex-col items-center gap-3 sm:gap-4 p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#FFD8C8] to-[#FFE8D8] shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95"
+            >
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/60 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <BookOpen className="w-8 h-8 sm:w-10 sm:h-10 text-[#FF7F4B]" />
+              </div>
+              <div className="text-center space-y-1 sm:space-y-2">
+                <span className="text-lg sm:text-xl font-bold text-slate-800 block">Mes cours</span>
+                <span className="text-xs sm:text-sm text-slate-600 block">Consultez vos cours détaillés</span>
+              </div>
+            </Link>
+            
           </div>
+          
 
           <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-5 sm:p-8">
             <h3 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4 sm:mb-6 text-center">Fonctionnalités</h3>
