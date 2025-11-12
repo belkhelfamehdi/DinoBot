@@ -10,7 +10,7 @@ interface GeneratedData {
   revision: {
     definitions: Array<{ title: string; definition: string }>
     formulas: Array<{ title: string; explanation: string; example: string }>
-    examples: Array<{ question: string; answer: string }>
+    examples: Array<{ question: string; resolution?: string[]; answer: string }>
     revisionCards: Array<{ title: string; methods: string[] }>
     errors: Array<{ title: string; advice: string }>
   }
@@ -83,7 +83,7 @@ export default function CoursePage() {
   const exampleCards = generatedData?.revision.examples.map(ex => ({
     title: ex.question,
     problem: "",
-    resolution: [],
+    resolution: ex.resolution || [],
     answer: ex.answer
   })) || []
 
@@ -163,182 +163,96 @@ export default function CoursePage() {
       <main className="flex-1 px-4 py-6 pb-24 overflow-y-auto bg-white">
         {activeSubTab === "fiche" && (
           <>
-            <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-gray-100">
-              <button
-                onClick={() => setSection1Open(!section1Open)}
-                className="w-full flex items-center justify-between gap-3 mb-2"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl font-bold text-blue-500">1.</span>
-                  <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">
-                    RÉFÉRENCES ET DÉFINITIONS
-                  </h2>
+            {generatedData ? (
+              <>
+                {/* Section 1: Définitions */}
+                <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-gray-100">
+                  <button
+                    onClick={() => setSection1Open(!section1Open)}
+                    className="w-full flex items-center justify-between gap-3 mb-2"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl font-bold text-blue-500">1.</span>
+                      <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">
+                        RÉFÉRENCES ET DÉFINITIONS
+                      </h2>
+                    </div>
+                    {section1Open ? (
+                      <ChevronUp className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                    )}
+                  </button>
+
+                  {section1Open && (
+                    <div className="space-y-4 mt-4">
+                      {definitionCards.map((def, idx) => (
+                        <div key={idx}>
+                          <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase">{def.title}</h3>
+                          <ul className="space-y-3 text-sm text-gray-800">
+                            <li className="leading-relaxed">
+                              - {def.definition}
+                            </li>
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                {section1Open ? (
-                  <ChevronUp className="w-5 h-5 text-gray-600 flex-shrink-0" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-600 flex-shrink-0" />
-                )}
-              </button>
 
-              {section1Open && (
-                <div className="space-y-4 mt-4">
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase">MODÈLES ACIDE-BASE</h3>
-                    <ul className="space-y-3 text-sm text-gray-800">
-                      <li className="leading-relaxed">
-                        - <span className="font-semibold">Arrhenius</span> : acide → libère{" "}
-                        <span className="text-blue-500 font-medium">H⁺</span> en solution aqueuse ;{" "}
-                        <span className="font-semibold">base</span> → libère{" "}
-                        <span className="text-blue-500 font-medium">OH⁻</span>.
-                      </li>
-                      <li className="leading-relaxed">
-                        - <span className="font-semibold">Brønsted-Lowry</span> : acide = donneur de{" "}
-                        <span className="font-semibold">proton</span>{" "}
-                        <span className="text-blue-500 font-medium">H⁺</span> ; base = accepteur de proton{" "}
-                        <span className="text-blue-500 font-medium">H⁺</span>.
-                      </li>
-                      <li className="leading-relaxed">
-                        - <span className="font-semibold">Couple acide/base</span> conjugués :{" "}
-                        <span className="text-blue-500 font-medium">AH/A⁻</span> ;{" "}
-                        <span className="text-blue-500 font-medium">BH⁺/B</span>.
-                      </li>
-                      <li className="leading-relaxed">
-                        - Espèce <span className="font-semibold">amphotère/ampholyte</span> : peut agir comme{" "}
-                        <span className="font-semibold">acide</span> ou <span className="font-semibold">base</span> (ex.
-                        : <span className="text-blue-500 font-medium">H₂O</span>,{" "}
-                        <span className="text-blue-500 font-medium">HCO₃⁻</span>).
-                      </li>
-                      <li className="leading-relaxed">
-                        - Réaction <span className="font-semibold">acide-base</span> = transfert de proton :{" "}
-                        <span className="text-blue-500 font-medium">AH + B ⇌ A⁻ + BH⁺</span>.
-                      </li>
-                    </ul>
-                  </div>
+                {/* Section 2: Formules */}
+                <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-gray-100">
+                  <button
+                    onClick={() => setSection2Open(!section2Open)}
+                    className="w-full flex items-center justify-between gap-3 mb-2"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl font-bold text-purple-500">2.</span>
+                      <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">FORMULES ET CALCULS</h2>
+                    </div>
+                    {section2Open ? (
+                      <ChevronUp className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                    )}
+                  </button>
 
-                  <div className="pt-4">
-                    <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase">FORCES ET CONSTANTES</h3>
-                    <ul className="space-y-3 text-sm text-gray-800">
-                      <li className="leading-relaxed">
-                        - Constante d'acidité <span className="text-blue-500 font-medium">K_a</span> (à{" "}
-                        <span className="text-blue-500 font-medium">T</span> donnée) :
-                        <div className="my-2 text-center">
-                          <span className="text-blue-500 font-medium text-base">K_a = [A⁻][H₃O⁺] / [AH]</span>
+                  {section2Open && (
+                    <div className="space-y-4 mt-4">
+                      {formulaCards.map((formula, idx) => (
+                        <div key={idx}>
+                          <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase">{formula.title}</h3>
+                          <ul className="space-y-3 text-sm text-gray-800">
+                            <li className="leading-relaxed">
+                              - {formula.explanation}
+                              {formula.example && (
+                                <div className="my-2 pl-4">
+                                  <span className="text-purple-500 font-medium">{formula.example}</span>
+                                </div>
+                              )}
+                            </li>
+                          </ul>
                         </div>
-                      </li>
-                      <li className="leading-relaxed">
-                        - <span className="text-blue-500 font-medium">pK_a = −log₁₀(K_a)</span>. Plus{" "}
-                        <span className="text-blue-500 font-medium">pK_a</span> est petit, plus l'
-                        <span className="font-semibold">acide est fort</span>.
-                      </li>
-                    </ul>
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-
-            <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-gray-100">
-              <button
-                onClick={() => setSection2Open(!section2Open)}
-                className="w-full flex items-center justify-between gap-3 mb-2"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl font-bold text-purple-500">2.</span>
-                  <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">CALCUL DE pH</h2>
-                </div>
-                {section2Open ? (
-                  <ChevronUp className="w-5 h-5 text-gray-600 flex-shrink-0" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-600 flex-shrink-0" />
-                )}
-              </button>
-
-              {section2Open && (
-                <div className="space-y-4 mt-4">
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase">DÉFINITION DU pH</h3>
-                    <ul className="space-y-3 text-sm text-gray-800">
-                      <li className="leading-relaxed">
-                        - Le <span className="font-semibold">pH</span> (potentiel hydrogène) mesure l'acidité ou la
-                        basicité d'une solution.
-                      </li>
-                      <li className="leading-relaxed">
-                        - Formule :{" "}
-                        <div className="my-2 text-center">
-                          <span className="text-purple-500 font-medium text-base">pH = −log₁₀[H₃O⁺]</span>
-                        </div>
-                      </li>
-                      <li className="leading-relaxed">
-                        - Relation inverse : <span className="text-purple-500 font-medium">[H₃O⁺] = 10⁻ᵖᴴ</span>
-                      </li>
-                      <li className="leading-relaxed">
-                        - Échelle de pH : de <span className="font-semibold">0</span> (très acide) à{" "}
-                        <span className="font-semibold">14</span> (très basique), neutre à{" "}
-                        <span className="font-semibold">pH = 7</span> (à 25°C).
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="pt-4">
-                    <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase">ACIDES ET BASES FORTS</h3>
-                    <ul className="space-y-3 text-sm text-gray-800">
-                      <li className="leading-relaxed">
-                        - <span className="font-semibold">Acide fort</span> : dissociation totale dans l'eau.
-                        <div className="my-2 pl-4">
-                          <span className="text-purple-500 font-medium">pH = −log₁₀(C_a)</span>
-                        </div>
-                        où <span className="text-purple-500 font-medium">C_a</span> est la concentration de l'acide.
-                      </li>
-                      <li className="leading-relaxed">
-                        - <span className="font-semibold">Base forte</span> : dissociation totale dans l'eau.
-                        <div className="my-2 pl-4">
-                          <span className="text-purple-500 font-medium">pH = 14 + log₁₀(C_b)</span>
-                        </div>
-                        où <span className="text-purple-500 font-medium">C_b</span> est la concentration de la base.
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="pt-4">
-                    <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase">ACIDES ET BASES FAIBLES</h3>
-                    <ul className="space-y-3 text-sm text-gray-800">
-                      <li className="leading-relaxed">
-                        - <span className="font-semibold">Acide faible</span> : dissociation partielle.
-                        <div className="my-2 pl-4">
-                          <span className="text-purple-500 font-medium">pH ≈ ½(pK_a − log₁₀(C_a))</span>
-                        </div>
-                      </li>
-                      <li className="leading-relaxed">
-                        - <span className="font-semibold">Base faible</span> : dissociation partielle.
-                        <div className="my-2 pl-4">
-                          <span className="text-purple-500 font-medium">pH ≈ 7 + ½(pK_a + log₁₀(C_b))</span>
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="pt-4">
-                    <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase">SOLUTIONS TAMPONS</h3>
-                    <ul className="space-y-3 text-sm text-gray-800">
-                      <li className="leading-relaxed">
-                        - Une <span className="font-semibold">solution tampon</span> résiste aux variations de pH lors
-                        de l'ajout d'acide ou de base.
-                      </li>
-                      <li className="leading-relaxed">
-                        - Composée d'un <span className="font-semibold">couple acide/base</span> conjugué en proportions
-                        comparables.
-                      </li>
-                      <li className="leading-relaxed">
-                        - Équation de <span className="font-semibold">Henderson-Hasselbalch</span> :
-                        <div className="my-2 text-center">
-                          <span className="text-purple-500 font-medium text-base">pH = pK_a + log₁₀([A⁻]/[AH])</span>
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-            </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 px-4">
+                <div className="text-6xl mb-4">🦖</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">Aucune fiche générée</h3>
+                <p className="text-gray-600 text-center mb-6">
+                  Génère d'abord du contenu depuis le formulaire de création de fiche.
+                </p>
+                <Link
+                  href="/fiches/creer-fiche/database"
+                  className="bg-gradient-to-r from-[#6B8EFF] to-[#8BADFF] hover:from-[#5B7FFF] hover:to-[#7B9FFF] text-white px-6 py-3 rounded-full font-bold shadow-lg hover:shadow-xl transition-all"
+                >
+                  Créer une fiche
+                </Link>
+              </div>
+            )}
           </>
         )}
 
@@ -389,18 +303,22 @@ export default function CoursePage() {
                         <div key={index} className="w-full flex-shrink-0 px-1">
                           <div className="bg-gradient-to-r from-[#C8D8FF] to-[#D8E4FF] rounded-t-2xl p-4">
                             <h3 className="font-bold text-base leading-snug text-slate-800">
-                              {card.title}: {card.problem}
+                              {card.title}{card.problem ? `: ${card.problem}` : ""}
                             </h3>
                           </div>
                           <div className="bg-white rounded-b-2xl p-4 border border-t-0 border-gray-200 shadow-sm">
-                            <h4 className="font-bold text-sm text-gray-900 mb-2">Résolution</h4>
-                            <div className="text-xs text-gray-700 space-y-1 mb-4">
-                              {card.resolution.map((line, i) => (
-                                <p key={i} className="leading-relaxed">
-                                  {line}
-                                </p>
-                              ))}
-                            </div>
+                            {card.resolution.length > 0 && (
+                              <>
+                                <h4 className="font-bold text-sm text-gray-900 mb-2">Résolution</h4>
+                                <div className="text-xs text-gray-700 space-y-1 mb-4">
+                                  {card.resolution.map((line, i) => (
+                                    <p key={i} className="leading-relaxed">
+                                      {line}
+                                    </p>
+                                  ))}
+                                </div>
+                              </>
+                            )}
                             <h4 className="font-bold text-sm text-gray-900 mb-2">Réponse</h4>
                             <p className="text-xs text-gray-700 leading-relaxed">{card.answer}</p>
                           </div>
