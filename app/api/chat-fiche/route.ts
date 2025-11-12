@@ -1,4 +1,5 @@
-import { GoogleGenerativeAI } from "@google/generative-ai"
+import { streamText } from "ai"
+import { groq } from "@ai-sdk/groq"
 
 export const maxDuration = 30
 
@@ -18,20 +19,21 @@ Contexte du cours sur les Acides et Bases :
 Réponds de manière claire, pédagogique et encourageante. Utilise des exemples concrets quand c'est pertinent.
 Si l'élève pose une question hors sujet, ramène-le gentiment au cours.`
 
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
-
-  const result = await model.generateContent({
-    contents: [
-      { role: "user", parts: [{ text: systemPrompt + "\n\n" + message }] }
+  const result = streamText({
+    model: groq("llama-3.3-70b-versatile"),
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: message },
     ],
-    generationConfig: {
-      maxOutputTokens: 500,
-      temperature: 0.7,
-    },
+    temperature: 0.7,
   })
 
-  const fullText = result.response.text()
+  const textStream = result.textStream
+  let fullText = ""
+
+  for await (const chunk of textStream) {
+    fullText += chunk
+  }
 
   return Response.json({ response: fullText })
 }
