@@ -87,6 +87,9 @@ http://localhost:3000
 ## Déploiement
 
 L'application est déployée sur Vercel et accessible à l'adresse :  
-**https://dino-bot-theta.vercel.app/fiches/revision**
+**https://dino-bot-theta.vercel.app**
+
+Pour générer une fiche :  
+**https://dino-bot-theta.vercel.app/fiches/creer-fiche/database**
 
 ---
