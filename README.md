@@ -6,22 +6,27 @@
 
 ### Prérequis
 - Node.js 18 ou supérieur
-- npm ou pnpm
+- pnpm (gestionnaire de paquets)
 
 ### Installation
 
-1. **Cloner le projet**
+1. **Installer pnpm** (si ce n'est pas déjà fait)
+```bash
+npm install -g pnpm
+```
+
+2. **Cloner le projet**
 ```bash
 git clone https://github.com/belkhelfamehdi/DinoBot.git
 cd DinoBot
 ```
 
-2. **Installer les dépendances**
+3. **Installer les dépendances**
 ```bash
 pnpm install
 ```
 
-3. **Configurer les variables d'environnement**
+4. **Configurer les variables d'environnement**
 
 Créer un fichier `.env.local` à la racine du projet :
 ```bash
@@ -30,12 +35,12 @@ GROQ_API_KEY=votre_clé_api_groq
 
 > Pour obtenir une clé API Groq gratuite : https://console.groq.com
 
-4. **Lancer le serveur de développement**
+5. **Lancer le serveur de développement**
 ```bash
 pnpm dev
 ```
 
-5. **Accéder à l'application**
+6. **Accéder à l'application**
 ```
 http://localhost:3000
 ```
