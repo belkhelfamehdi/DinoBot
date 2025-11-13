@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { ChevronDown, Check, Plus } from "lucide-react"
 import Link from "next/link"
 import { coursesData } from "@/data/courses"
-import { subjectColors } from "@/data/fiches"
 
 interface SavedFiche {
   subject: string
@@ -81,7 +80,12 @@ export default function ToutesLesFichesPage() {
       groupedByDate[dateKey] = []
     }
     
-    const colors = subjectColors[fiche.subjectId] || subjectColors['physique-chimie']
+    // Récupérer les couleurs depuis coursesData
+    const subject = coursesData.subjects.find(s => s.id === fiche.subjectId)
+    const colors = {
+      color: subject?.color || "#7C3AED",
+      bgColor: subject?.bgColor || "#F0E7FF",
+    }
     
     groupedByDate[dateKey].push({
       id: `fiche-${date.getTime()}`,
@@ -214,14 +218,18 @@ export default function ToutesLesFichesPage() {
                           onClick={handleFicheClick}
                           className="block bg-white rounded-[1.5rem] shadow-md hover:shadow-lg transition-all overflow-hidden group"
                         >
-                          <div className={`bg-gradient-to-r ${colors.gradient} px-3 sm:px-4 py-2 sm:py-2.5`}>
+                          <div
+                            className="px-3 sm:px-4 py-2 sm:py-2.5"
+                            style={{ backgroundColor: colors.color }}
+                          >
                             <p className="text-white text-xs sm:text-sm font-bold tracking-tight">
                               {fiche.subject} - {getTypeLabel(fiche.type)}
                             </p>
                           </div>
                           <div className="px-3 sm:px-4 py-3 sm:py-4 flex items-center gap-2.5 sm:gap-3">
                             <div
-                              className={`w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br ${colors.iconBg} rounded-[1rem] flex items-center justify-center flex-shrink-0 shadow-sm`}
+                              className="w-10 h-10 sm:w-12 sm:h-12 rounded-[1rem] flex items-center justify-center flex-shrink-0 shadow-sm"
+                              style={{ backgroundColor: colors.bgColor }}
                             >
                               <div className="text-lg sm:text-xl">{fiche.icon}</div>
                             </div>
@@ -282,14 +290,17 @@ export default function ToutesLesFichesPage() {
                       setSelectedSubject(subject.name)
                       setIsSubjectModalOpen(false)
                     }}
-                    className={`w-full flex items-center gap-4 p-4 rounded-[1.25rem] transition-all hover:scale-[1.01] ${isSelected ? subject.bgColor : "bg-white hover:bg-slate-50"
-                      }`}
+                    className="w-full flex items-center gap-4 p-4 rounded-[1.25rem] transition-all hover:scale-[1.01]"
+                    style={{
+                      backgroundColor: isSelected ? subject.bgColor : "#ffffff",
+                      color: isSelected ? subject.color : "#64748b"
+                    }}
                   >
                     <div className="text-3xl">{subject.icon}</div>
-                    <span className={`text-base font-bold tracking-tight flex-1 text-left ${subject.color}`}>
+                    <span className="text-base font-bold tracking-tight flex-1 text-left" style={{ color: subject.color }}>
                       {subject.name}
                     </span>
-                    {isSelected && <Check className={`w-6 h-6 ${subject.color}`} />}
+                    {isSelected && <Check className="w-6 h-6" style={{ color: subject.color }} />}
                   </button>
                 )
               })}

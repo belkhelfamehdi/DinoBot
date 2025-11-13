@@ -62,41 +62,6 @@ export function useCourses() {
     return parts.find(p => p.id === partId)
   }
 
-  const searchCourses = (query: string) => {
-    const results: Array<{
-      subject: Subject
-      chapter: Chapter
-      part?: Part
-    }> = []
-
-    const lowerQuery = query.toLowerCase()
-
-    for (const subject of data.subjects) {
-      for (const chapter of subject.chapters) {
-        // Recherche dans le chapitre
-        if (
-          chapter.name.toLowerCase().includes(lowerQuery) ||
-          chapter.description.toLowerCase().includes(lowerQuery)
-        ) {
-          results.push({ subject, chapter })
-        }
-
-        // Recherche dans les parties
-        for (const part of chapter.parts) {
-          if (
-            part.name.toLowerCase().includes(lowerQuery) ||
-            part.content.toLowerCase().includes(lowerQuery) ||
-            part.keywords.some(k => k.toLowerCase().includes(lowerQuery))
-          ) {
-            results.push({ subject, chapter, part })
-          }
-        }
-      }
-    }
-
-    return results
-  }
-
   return {
     subjects: data.subjects,
     getSubjects,
@@ -105,7 +70,6 @@ export function useCourses() {
     getChaptersBySubject,
     getChapterById,
     getPartsByChapter,
-    getPartById,
-    searchCourses
+    getPartById
   }
 }
