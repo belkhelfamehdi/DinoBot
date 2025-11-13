@@ -49,35 +49,30 @@ http://localhost:3000
 
 ## Fonctionnalités implémentées
 
-✅ **Génération automatique de fiches pédagogiques** à partir de cours existants  
-✅ **4 matières disponibles** : Chimie, Physique, Mathématiques, SVT  
-✅ **Personnalisation du niveau de difficulté** (1 à 3)  
-✅ **Génération de 3 types de contenu** :
+- **Génération automatique de fiches pédagogiques** à partir de cours existants  
+- **4 matières disponibles** : Chimie, Physique, Mathématiques, SVT  
+- **Génération de 3 types de contenu** :
 - Fiche de révision (définitions, formules, exercices, conseils, erreurs courantes)
 - Flashcards interactives
 - Quiz avec corrections et explications  
 
-✅ **Sauvegarde automatique** des fiches générées  
-✅ **Interface responsive** et intuitive
+- **Sauvegarde automatique** des fiches générées dans sessionStorage
 
 ---
 
 ## Technologies utilisées
 
-- **Next.js 16** (App Router)
+- **Next.js 16**
 - **TypeScript**
 - **Tailwind CSS**
 - **shadcn/ui**
 - **Groq AI** (llama-3.3-70b-versatile)
-- **Vercel AI SDK**
 
 ---
 
 ## Choix techniques
 
 ### Architecture
-- **Next.js App Router** : Pour une structure moderne avec Server et Client Components
-- **TypeScript** : Typage strict pour éviter les erreurs et améliorer la maintenabilité
 - **sessionStorage** : Persistance côté client simple et rapide pour le prototype
 
 ### Génération de contenu
@@ -85,7 +80,6 @@ http://localhost:3000
 
 ### Interface utilisateur
 - **shadcn/ui** : Composants modernes, accessibles et personnalisables
-- **Design responsive** : Optimisé pour mobile, tablette et desktop
 - **Tailwind CSS** : Styling rapide et maintenable
 
 ---
