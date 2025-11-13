@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { ChevronLeft, X, ChevronDown } from "lucide-react"
 import Link from "next/link"
+import { coursesData } from "@/data/courses"
 
 interface GeneratedData {
   subject: string
@@ -26,12 +27,12 @@ export default function FlashcardPage() {
     }
   }, [])
 
-  const subjects = [
-    { name: "Mathématiques", icon: "📐", color: "from-[#C8D8FF] to-[#D8E4FF]" },
-    { name: "Physique-Chimie", icon: "⚗️", color: "from-[#D8C8FF] to-[#E8D8FF]" },
-    { name: "SVT", icon: "🌿", color: "from-[#D0F0E0] to-[#E0F8E8]" },
-    { name: "Français", icon: "📚", color: "from-[#FFD8D8] to-[#FFE8E8]" },
-  ]
+  const subjects = coursesData.subjects.map(subject => ({
+    name: subject.name,
+    icon: subject.icon,
+    bgColor: subject.bgColor,
+    color: subject.color
+  }))
 
   const flashcards = generatedData?.flashcards || []
 
@@ -242,16 +243,16 @@ export default function FlashcardPage() {
                     setSelectedSubject(subject.name)
                     setSubjectSelectorOpen(false)
                   }}
-                  className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all ${
-                    selectedSubject === subject.name
-                      ? "bg-gradient-to-r " + subject.color + " shadow-lg"
-                      : "bg-slate-50 hover:bg-slate-100"
-                  }`}
+                  className="w-full flex items-center gap-4 p-4 rounded-2xl transition-all"
+                  style={{
+                    backgroundColor: selectedSubject === subject.name ? subject.bgColor : "#f8fafc",
+                    color: selectedSubject === subject.name ? subject.color : "#64748b"
+                  }}
                 >
                   <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl">
                     {subject.icon}
                   </div>
-                  <span className="font-bold text-lg text-slate-900">{subject.name}</span>
+                  <span className="font-bold text-lg">{subject.name}</span>
                 </button>
               ))}
             </div>
