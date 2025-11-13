@@ -19,7 +19,7 @@ export async function POST(req: Request) {
 
   // Construire le contexte à partir des parties sélectionnées
   let contexte = ""
-  if (chapter && parties && parties.length > 0) {
+  if (chapter && parties.length > 0) {
     for (const partieName of parties) {
       const partie = chapter.parts.find(p => p.name === partieName)
       if (partie) {

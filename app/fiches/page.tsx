@@ -101,13 +101,11 @@ export default function ToutesLesFichesPage() {
     })
   })
 
-  // Convertir en format de tableau
   const allFiches = Object.keys(groupedByDate).map(date => ({
     date,
     items: groupedByDate[date]
   }))
 
-  // Filtrer les fiches par matière sélectionnée
   const filteredFiches = selectedSubject === "Toutes"
     ? allFiches
     : allFiches.map(group => ({
@@ -115,19 +113,15 @@ export default function ToutesLesFichesPage() {
       items: group.items.filter(fiche => fiche.subject === selectedSubject)
     })).filter(group => group.items.length > 0)
 
-  // Formater le temps d'affichage
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr)
-    const days = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"]
-    const months = ["jan.", "fév.", "mars", "avril", "mai", "juin", "juil.", "août", "sep.", "oct.", "nov.", "déc."]
-
-    const dayName = days[date.getDay()]
-    const day = date.getDate()
-    const month = months[date.getMonth()]
+    const day = date.getDate().toString().padStart(2, '0')
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const year = date.getFullYear()
     const hours = date.getHours()
     const minutes = date.getMinutes().toString().padStart(2, '0')
 
-    return `${dayName} ${day} ${month} à ${hours}h${minutes}`
+    return `${day}/${month}/${year} à ${hours}h${minutes}`
   }
 
   // Obtenir le type de fiche formaté
