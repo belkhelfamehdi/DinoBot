@@ -1,67 +1,93 @@
-# 🦖 DinoExam - Générateur de fiches pédagogiques
+# DinoExam - Générateur de fiches pédagogiques
 
-## 📖 Description
-Application de génération automatique de fiches de révision à partir de cours existants.
+---
 
-## 🚀 Installation locale
+## Comment lancer le projet en local
 
 ### Prérequis
-- Node.js 18+
+- Node.js 18 ou supérieur
 - npm ou pnpm
 
-### Étapes
-1. Cloner le projet
-\`\`\`bash
-git clone <votre-repo>
-cd dinoexam
-\`\`\`
+### Installation
 
-2. Installer les dépendances
-\`\`\`bash
-npm install
-# ou
+1. **Cloner le projet**
+```bash
+git clone https://github.com/belkhelfamehdi/DinoBot.git
+cd DinoBot
+```
+
+2. **Installer les dépendances**
+```bash
 pnpm install
-\`\`\`
+```
 
-3. Configurer les variables d'environnement
-\`\`\`bash
-cp .env.example .env.local
-\`\`\`
-Puis ajouter votre clé API Groq dans `.env.local`
+3. **Configurer les variables d'environnement**
 
-4. Lancer le serveur
-\`\`\`bash
-npm run dev
-\`\`\`
+Créer un fichier `.env.local` à la racine du projet :
+```bash
+GROQ_API_KEY=votre_clé_api_groq
+```
 
-5. Ouvrir http://localhost:3000
+> Pour obtenir une clé API Groq gratuite : https://console.groq.com
 
-## 🔑 Variables d'environnement
-- `GROQ_API_KEY` : Clé API Groq (https://console.groq.com)
+4. **Lancer le serveur de développement**
+```bash
+pnpm dev
+```
 
-## 🎯 Fonctionnalités
-- ✅ Génération de fiches depuis base de données de cours
-- ✅ Flashcards interactives
-- ✅ Quiz avec corrections
-- ✅ Sauvegarde locale des fiches
-- ✅ 4 matières : Chimie, Physique, Maths, SVT
+5. **Accéder à l'application**
+```
+http://localhost:3000
+```
 
-## 🛠️ Technologies
-- Next.js 15
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- Groq AI
-- Vercel AI SDK
+---
 
-## 📝 Choix techniques
-- **sessionStorage** : Persistance côté client (simple et rapide)
-- **Groq LLM** : Modèle performant et gratuit
-- **shadcn/ui** : Composants réutilisables et accessibles
-- **Streaming** : Affichage progressif de la génération
+## Fonctionnalités implémentées
 
-## 🚀 Déploiement
-Déployé sur Vercel : [lien-de-votre-app]
+✅ **Génération automatique de fiches pédagogiques** à partir de cours existants  
+✅ **4 matières disponibles** : Chimie, Physique, Mathématiques, SVT  
+✅ **Personnalisation du niveau de difficulté** (1 à 3)  
+✅ **Génération de 3 types de contenu** :
+- Fiche de révision (définitions, formules, exercices, conseils, erreurs courantes)
+- Flashcards interactives
+- Quiz avec corrections et explications  
 
-## 👤 Auteur
-[Votre nom]
+✅ **Sauvegarde automatique** des fiches générées  
+✅ **Interface responsive** et intuitive
+
+---
+
+## Technologies utilisées
+
+- **Next.js 16** (App Router)
+- **TypeScript**
+- **Tailwind CSS**
+- **shadcn/ui**
+- **Groq AI** (llama-3.3-70b-versatile)
+- **Vercel AI SDK**
+
+---
+
+## Choix techniques
+
+### Architecture
+- **Next.js App Router** : Pour une structure moderne avec Server et Client Components
+- **TypeScript** : Typage strict pour éviter les erreurs et améliorer la maintenabilité
+- **sessionStorage** : Persistance côté client simple et rapide pour le prototype
+
+### Génération de contenu
+- **Groq AI** : API gratuite, rapide et performante pour la génération de contenu pédagogique
+
+### Interface utilisateur
+- **shadcn/ui** : Composants modernes, accessibles et personnalisables
+- **Design responsive** : Optimisé pour mobile, tablette et desktop
+- **Tailwind CSS** : Styling rapide et maintenable
+
+---
+
+## Déploiement
+
+L'application est déployée sur Vercel et accessible à l'adresse :  
+**https://dino-bot-theta.vercel.app/fiches/revision**
+
+---
