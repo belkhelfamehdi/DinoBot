@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Printer, CheckCircle2, XCircle } from "lucide-react"
-import CoursePage from "@/components/course-page"
+import { Printer, CheckCircle2, XCircle, ChevronLeft, Loader2, RotateCcw, Brain } from "lucide-react"
+import { toast } from "sonner"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 
 interface GeneratedData {
   subject: string
@@ -33,6 +35,7 @@ interface GeneratedData {
 
 export default function RevisionPage() {
   const [mode, setMode] = useState<"fiche" | "quizz">("fiche")
+  const [ficheTab, setFicheTab] = useState<"cours" | "infos">("cours")
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({})
   const [showResults, setShowResults] = useState(false)
@@ -54,6 +57,10 @@ export default function RevisionPage() {
   }
 
   const handleSubmitQuiz = () => {
+    if (Object.keys(selectedAnswers).length !== quizQuestions.length) {
+      toast.error("Réponds à toutes les questions")
+      return
+    }
     setShowResults(true)
   }
 
@@ -77,172 +84,367 @@ export default function RevisionPage() {
     window.print()
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F5F0FF] via-[#FAF5FF] to-[#FFF8FF]">
-      <div className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-md">
-        <div className="px-4 py-4 flex items-center justify-center gap-4">
-          <button
-            onClick={() => setMode("fiche")}
-            className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all ${
-              mode === "fiche"
-                ? "bg-gradient-to-r from-[#6B8EFF] to-[#8BADFF] text-white shadow-lg"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
+  if (!generatedData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-20 h-20 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto mb-4">
+            <span className="text-4xl">🦕</span>
+          </div>
+          <h3 className="text-xl font-bold mb-2">Aucune fiche générée</h3>
+          <p className="text-muted-foreground mb-6">
+            Génère d'abord du contenu depuis le formulaire
+          </p>
+          <Link
+            href="/fiches/creer-fiche"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-lg"
           >
-            📄 Fiche de cours
-          </button>
-          <button
-            onClick={() => setMode("quizz")}
-            className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all ${
-              mode === "quizz"
-                ? "bg-gradient-to-r from-[#6B8EFF] to-[#8BADFF] text-white shadow-lg"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            ✅ Quizz
-          </button>
+            Créer une fiche
+          </Link>
         </div>
       </div>
+    )
+  }
 
-      {mode === "fiche" && (
-        <div className="relative">
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[100px]" />
+      </div>
+
+      <header className="sticky top-0 z-50 glass">
+        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
+          <Link href="/fiches" className="p-2 -ml-2">
+            <ChevronLeft className="w-6 h-6" />
+          </Link>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">{generatedData.subjectIcon}</span>
+            <div>
+              <div className="font-semibold">{generatedData.chapter}</div>
+              <div className="text-xs text-muted-foreground">{generatedData.subject}</div>
+            </div>
+          </div>
+          <div className="flex-1" />
           <button
             onClick={handlePrint}
-            className="fixed top-20 right-4 z-30 bg-gradient-to-r from-[#6B8EFF] to-[#8BADFF] hover:from-[#5B7FFF] hover:to-[#7B9FFF] text-white p-3 rounded-full shadow-xl hover:shadow-2xl transition-all print:hidden"
-            aria-label="Imprimer en PDF"
+            className="p-2 rounded-full hover:bg-muted transition-colors print:hidden"
+            aria-label="Imprimer"
           >
             <Printer className="w-5 h-5" />
           </button>
-          <CoursePage />
         </div>
-      )}
+      </header>
 
-      {mode === "quizz" && (
-        <div className="px-4 py-6 max-w-3xl mx-auto">
-          {quizQuestions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 px-4">
-              <div className="text-6xl mb-4">🦖</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">Aucun quiz disponible</h3>
-              <p className="text-gray-600 text-center mb-6">
-                Génère d'abord du contenu depuis le formulaire de création de fiche.
-              </p>
-              <Link
-                href="/fiches/creer-fiche/database"
-                className="bg-gradient-to-r from-[#6B8EFF] to-[#8BADFF] hover:from-[#5B7FFF] hover:to-[#7B9FFF] text-white px-6 py-3 rounded-full font-bold shadow-lg hover:shadow-xl transition-all"
-              >
-                Créer une fiche
-              </Link>
-            </div>
-          ) : (
-            <>
-              <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-            <div className="flex items-center justify-between mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">Quizz : Acides et Bases</h1>
-              {showResults && (
-                <div className="text-right">
-                  <div className="text-3xl font-bold text-[#6B8EFF]">
-                    {calculateScore()}/{quizQuestions.length}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {Math.round((calculateScore() / quizQuestions.length) * 100)}%
+      <div className="border-b border-border">
+        <div className="container mx-auto px-4">
+          <div className="flex gap-2 py-3">
+            {mode === "fiche" ? (
+              <>
+                <button
+                  onClick={() => setFicheTab("cours")}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    ficheTab === "cours"
+                      ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                      : "hover:bg-muted"
+                  }`}
+                >
+                  Fiche
+                </button>
+                <button
+                  onClick={() => setFicheTab("infos")}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    ficheTab === "infos"
+                      ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                      : "hover:bg-muted"
+                  }`}
+                >
+                  Infos clés
+                </button>
+                <Link
+                  href="/fiches/flashcard"
+                  className="px-4 py-2 rounded-full text-sm font-medium hover:bg-muted transition-all"
+                >
+                  Flashcards
+                </Link>
+              </>
+            ) : (
+              <button className="px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                Quiz
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <main className="container mx-auto px-4 py-6 pb-24">
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setMode("fiche")}
+            className={`px-6 py-3 rounded-full font-semibold transition-all ${
+              mode === "fiche"
+                ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30"
+                : "glass hover:shadow-md"
+            }`}
+          >
+            Fiche de cours
+          </button>
+          <button
+            onClick={() => setMode("quizz")}
+            className={`px-6 py-3 rounded-full font-semibold transition-all ${
+              mode === "quizz"
+                ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30"
+                : "glass hover:shadow-md"
+            }`}
+          >
+            Quiz
+          </button>
+        </div>
+
+        {mode === "fiche" && (
+          <div className="max-w-3xl mx-auto">
+            {ficheTab === "cours" && (
+              <div className="space-y-4">
+                <div className="p-6 rounded-2xl glass">
+                  <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm">1</span>
+                    Définitions
+                  </h2>
+                  <div className="space-y-4">
+                    {generatedData.revision.definitions.map((def, i) => (
+                      <div key={i} className="pl-10">
+                        <h3 className="font-semibold mb-1">{def.title}</h3>
+                        <div className="text-sm text-muted-foreground prose prose-sm prose-headings:font-semibold prose-p:text-muted-foreground">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{def.definition}</ReactMarkdown>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              )}
-            </div>
 
-            {!showResults && (
-              <div className="mb-4">
-                <div className="flex gap-2 mb-4">
-                  {quizQuestions.map((_, index) => (
-                    <div
-                      key={index}
-                      className={`h-2 flex-1 rounded-full transition-colors ${
-                        selectedAnswers[index] !== undefined ? "bg-[#6B8EFF]" : "bg-gray-200"
-                      }`}
-                    />
-                  ))}
+                <div className="p-6 rounded-2xl glass">
+                  <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center text-sm">2</span>
+                    Formules
+                  </h2>
+                  <div className="space-y-4">
+                    {generatedData.revision.formulas.map((f, i) => (
+                      <div key={i} className="pl-20">
+                        <h3 className="font-semibold mb-1">{f.title}</h3>
+                        <div className="text-sm text-muted-foreground mb-2 prose prose-sm prose-headings:font-semibold prose-p:text-muted-foreground">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{f.explanation}</ReactMarkdown>
+                        </div>
+                        <div className="text-xs text-purple-600 font-medium bg-purple-500/10 inline-block px-2 py-1 rounded prose prose-sm prose-p:text-purple-600 prose-p:mb-0">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{f.example}</ReactMarkdown>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <p className="text-sm text-gray-600 text-center">
-                  {Object.keys(selectedAnswers).length} / {quizQuestions.length} questions répondues
-                </p>
+
+                {generatedData.revision.errors.length > 0 && (
+                  <div className="p-6 rounded-2xl glass">
+                    <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center text-sm">!</span>
+                      Erreurs fréquentes
+                    </h2>
+                    <div className="space-y-4">
+                      {generatedData.revision.errors.map((err, i) => (
+                        <div key={i} className="pl-20">
+                          <h3 className="font-semibold mb-1">{err.title}</h3>
+                          <div className="text-sm text-muted-foreground prose prose-sm prose-headings:font-semibold prose-p:text-muted-foreground">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{err.advice}</ReactMarkdown>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {ficheTab === "infos" && (
+              <div className="space-y-4">
+                {generatedData.revision.examples.length > 0 && (
+                  <div className="p-6 rounded-2xl glass">
+                    <h2 className="text-lg font-bold mb-4">Exemples</h2>
+                    <div className="space-y-4">
+                      {generatedData.revision.examples.map((ex, i) => (
+                        <div key={i} className="p-4 rounded-xl bg-gradient-to-br from-purple-500/5 to-pink-500/5">
+                          <div className="font-medium mb-2 prose prose-sm prose-p:font-medium prose-p:mb-2">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{ex.question}</ReactMarkdown>
+                          </div>
+                          <div className="text-sm text-muted-foreground prose prose-sm prose-p:text-muted-foreground">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{ex.answer}</ReactMarkdown>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {generatedData.revision.revisionCards.length > 0 && (
+                  <div className="p-6 rounded-2xl glass">
+                    <h2 className="text-lg font-bold mb-4">Conseils de révision</h2>
+                    <div className="space-y-4">
+                      {generatedData.revision.revisionCards.map((card, i) => (
+                        <div key={i} className="p-4 rounded-xl bg-gradient-to-br from-green-500/5 to-emerald-500/5">
+                          <h3 className="font-semibold mb-2">{card.title}</h3>
+                          <ul className="space-y-1">
+                            {card.methods.map((m, j) => (
+                              <li key={j} className="text-sm text-muted-foreground flex gap-2">
+                                <span className="text-green-500">✓</span>
+                                {m}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
+        )}
 
-          <div className="space-y-6">
-            {quizQuestions.map((q, qIndex) => (
-              <div key={qIndex} className="bg-white rounded-2xl shadow-lg p-6">
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#6B8EFF] to-[#8BADFF] text-white flex items-center justify-center font-bold flex-shrink-0">
-                    {qIndex + 1}
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 flex-1">{q.question}</h3>
+        {mode === "quizz" && (
+          <div className="max-w-3xl mx-auto">
+            {quizQuestions.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-20 h-20 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto mb-4">
+                  <Brain className="w-10 h-10 text-purple-500" />
                 </div>
+                <h3 className="text-xl font-bold mb-2">Aucun quiz disponible</h3>
+                <p className="text-muted-foreground mb-6">
+                  Génère du contenu pour accéder au quiz
+                </p>
+                <Link
+                  href="/fiches/creer-fiche"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-lg"
+                >
+                  Créer une fiche
+                </Link>
+              </div>
+            ) : (
+              <>
+                {!showResults && (
+                  <div className="mb-6">
+                    <div className="flex gap-1 mb-2">
+                      {quizQuestions.map((_, i) => (
+                        <div
+                          key={i}
+                          className={`h-2 flex-1 rounded-full transition-all ${
+                            selectedAnswers[i] !== undefined ? "bg-purple-500" : "bg-muted"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-sm text-center text-muted-foreground">
+                      {Object.keys(selectedAnswers).length} / {quizQuestions.length} répondues
+                    </p>
+                  </div>
+                )}
 
-                <div className="space-y-3">
-                  {q.options.map((option, oIndex) => {
-                    const isSelected = selectedAnswers[qIndex] === oIndex
-                    const isCorrect = oIndex === q.correctAnswer
-                    const showCorrectAnswer = showResults && isCorrect
-                    const showWrongAnswer = showResults && isSelected && !isCorrect
+                {showResults && (
+                  <div className="mb-6 p-6 rounded-2xl glass text-center">
+                    <p className="text-sm text-muted-foreground mb-2">Score final</p>
+                    <div className="text-5xl font-bold text-gradient mb-2">
+                      {Math.round((calculateScore() / quizQuestions.length) * 100)}%
+                    </div>
+                    <p className="text-muted-foreground">
+                      {calculateScore()} / {quizQuestions.length} bonnes réponses
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  {quizQuestions.map((q, qIndex) => {
+                    const isCorrect = selectedAnswers[qIndex] === q.correctAnswer
+                    const hasAnswered = selectedAnswers[qIndex] !== undefined
 
                     return (
-                      <button
-                        key={oIndex}
-                        onClick={() => handleAnswerSelect(qIndex, oIndex)}
-                        disabled={showResults}
-                        className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                          showCorrectAnswer
-                            ? "border-green-500 bg-green-50"
-                            : showWrongAnswer
-                              ? "border-red-500 bg-red-50"
-                              : isSelected
-                                ? "border-[#6B8EFF] bg-blue-50"
-                                : "border-gray-200 hover:border-gray-300 bg-white"
-                        } ${showResults ? "cursor-default" : "cursor-pointer"}`}
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-sm text-gray-800">{option}</span>
-                          {showCorrectAnswer && <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />}
-                          {showWrongAnswer && <XCircle className="w-5 h-5 text-red-600 flex-shrink-0" />}
+                      <div key={qIndex} className="p-6 rounded-2xl glass">
+                        <div className="flex items-start gap-3 mb-4">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                            showResults
+                              ? isCorrect ? "bg-green-500 text-white" : "bg-red-500 text-white"
+                              : "bg-purple-500 text-white"
+                          }`}>
+                            {qIndex + 1}
+                          </div>
+                          <p className="flex-1 font-medium">{q.question}</p>
                         </div>
-                      </button>
+
+                        <div className="space-y-2">
+                          {q.options.map((option, oIndex) => {
+                            const isSelected = selectedAnswers[qIndex] === oIndex
+                            const isCorrectAnswer = oIndex === q.correctAnswer
+
+                            return (
+                              <button
+                                key={oIndex}
+                                onClick={() => handleAnswerSelect(qIndex, oIndex)}
+                                disabled={showResults}
+                                className={`w-full text-left p-4 rounded-xl border transition-all ${
+                                  showResults
+                                    ? isCorrectAnswer
+                                      ? "border-green-500 bg-green-500/10"
+                                      : isSelected && !isCorrectAnswer
+                                        ? "border-red-500 bg-red-500/10"
+                                        : "border-border bg-muted/50"
+                                    : isSelected
+                                      ? "border-purple-500 bg-purple-500/10"
+                                      : "border-border hover:border-purple-500/50"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between gap-3">
+                                  <span className="text-sm">{option}</span>
+                                  {showResults && isCorrectAnswer && <CheckCircle2 className="w-5 h-5 text-green-500" />}
+                                  {showResults && isSelected && !isCorrectAnswer && <XCircle className="w-5 h-5 text-red-500" />}
+                                </div>
+                              </button>
+                            )
+                          })}
+                        </div>
+
+                        {showResults && (
+                          <div className="mt-4 p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                            <p className="text-sm font-semibold text-purple-700 mb-1">Explication</p>
+                            <div className="text-sm text-muted-foreground prose prose-sm prose-p:text-muted-foreground">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{q.explanation}</ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )
                   })}
                 </div>
 
-                {showResults && (
-                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                    <p className="text-sm font-semibold text-blue-900 mb-1">💡 Explication</p>
-                    <p className="text-sm text-blue-800">{q.explanation}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-8 flex gap-4 justify-center">
-            {!showResults ? (
-              <button
-                onClick={handleSubmitQuiz}
-                disabled={Object.keys(selectedAnswers).length !== quizQuestions.length}
-                className="bg-gradient-to-r from-[#6B8EFF] to-[#8BADFF] hover:from-[#5B7FFF] hover:to-[#7B9FFF] disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded-full font-bold shadow-lg hover:shadow-xl transition-all"
-              >
-                Valider mes réponses
-              </button>
-            ) : (
-              <button
-                onClick={handleResetQuiz}
-                className="bg-gradient-to-r from-[#6B8EFF] to-[#8BADFF] hover:from-[#5B7FFF] hover:to-[#7B9FFF] text-white px-8 py-3 rounded-full font-bold shadow-lg hover:shadow-xl transition-all"
-              >
-                Recommencer le quizz
-              </button>
+                <div className="mt-6 flex justify-center gap-4">
+                  {!showResults ? (
+                    <button
+                      onClick={handleSubmitQuiz}
+                      disabled={Object.keys(selectedAnswers).length !== quizQuestions.length}
+                      className="px-8 py-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Valider mes réponses
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleResetQuiz}
+                      className="px-8 py-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-lg flex items-center gap-2"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      Recommencer
+                    </button>
+                  )}
+                </div>
+              </>
             )}
           </div>
-            </>
-          )}
-        </div>
-      )}
+        )}
+      </main>
 
       <style jsx global>{`
         @media print {
@@ -252,9 +454,7 @@ export default function RevisionPage() {
           .print\\:hidden {
             display: none !important;
           }
-          header,
-          button,
-          .sticky {
+          header, .sticky {
             display: none !important;
           }
         }
