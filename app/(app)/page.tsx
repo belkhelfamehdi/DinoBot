@@ -1,6 +1,6 @@
 "use client"
 
-import { FileText, BookOpen, Sparkles, Plus, Zap, Brain, Target, Trophy, TrendingUp } from "lucide-react"
+import { FileText, BookOpen, Sparkles, Plus, Zap, Brain, Target, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 
@@ -119,12 +119,11 @@ export default function HomePage() {
             </Link>
           </section>
 
-          <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+          <section className="grid grid-cols-3 gap-4 mb-16">
             {[
               { icon: Brain, value: ficheCount.toString(), label: "Fiches générées", colorClass: "text-purple-500", bgClass: "bg-purple-500/20" },
               { icon: Zap, value: "4", label: "Matières disponibles", colorClass: "text-blue-500", bgClass: "bg-blue-500/20" },
               { icon: Target, value: "3", label: "Modes de révision", colorClass: "text-pink-500", bgClass: "bg-pink-500/20" },
-              { icon: Trophy, value: "IA", label: "Groq + Llama", colorClass: "text-green-500", bgClass: "bg-green-500/20" },
             ].map((stat, i) => (
               <div key={i} className="p-6 rounded-2xl bg-background/60 backdrop-blur border border-border text-center">
                 <div className={`w-12 h-12 rounded-xl ${stat.bgClass} flex items-center justify-center mx-auto mb-3`}>
