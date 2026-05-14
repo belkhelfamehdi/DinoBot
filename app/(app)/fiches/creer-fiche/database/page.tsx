@@ -1,9 +1,8 @@
 "use client"
 
 import { useState, Suspense } from "react"
-import { BookOpen, FileText, ChevronDown, X, Sparkles, Loader2, ChevronRight } from "lucide-react"
+import { BookOpen, FileText, X, Sparkles, Loader2, ChevronDown } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import Link from "next/link"
 import { useCourses } from "@/hooks/use-courses"
 import { toast } from "sonner"
 
@@ -12,17 +11,9 @@ function DatabaseGeneratorContent() {
   const searchParams = useSearchParams()
   const { getSubjectById, getSubjectByName, getChaptersBySubject, getPartsByChapter } = useCourses()
 
-  const subjectParam = searchParams.get('subject') || 'chimie'
-  
-  let subject = getSubjectById(subjectParam)
-  if (!subject) {
-    subject = getSubjectByName(subjectParam)
-  }
-  if (!subject) {
-    subject = getSubjectById('chimie')
-  }
-  
-  const subjectId = subject?.id || 'chimie'
+  const subjectParam = searchParams.get("subject") || "chimie"
+  const subject = getSubjectById(subjectParam) ?? getSubjectByName(subjectParam) ?? getSubjectById("chimie")
+  const subjectId = subject?.id || "chimie"
   const chapters = getChaptersBySubject(subjectId)
 
   const [selectedChapter, setSelectedChapter] = useState(chapters[0]?.id || "")
@@ -35,69 +26,55 @@ function DatabaseGeneratorContent() {
   const availableParts = getPartsByChapter(subjectId, selectedChapter)
 
   const addPart = (partId: string) => {
-    if (!selectedParts.includes(partId)) {
-      setSelectedParts([...selectedParts, partId])
-    }
+    if (!selectedParts.includes(partId)) setSelectedParts((prev) => [...prev, partId])
     setShowPartsDropdown(false)
   }
 
-  const removePart = (partId: string) => {
-    setSelectedParts(selectedParts.filter((id) => id !== partId))
-  }
+  const removePart = (partId: string) => setSelectedParts((prev) => prev.filter((id) => id !== partId))
 
   const handleGenerate = async () => {
-    if (selectedParts.length === 0) {
-      toast.error("Sélectionne au moins une partie")
-      return
-    }
-
+    if (selectedParts.length === 0) { toast.error("Sélectionne au moins une partie"); return }
     setLoading(true)
     try {
-      const selectedChapterData = chapters.find(ch => ch.id === selectedChapter)
-      const selectedPartsData = availableParts.filter(p => selectedParts.includes(p.id))
-
-      const response = await fetch('/api/chat-fiche', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const selectedChapterData = chapters.find((ch) => ch.id === selectedChapter)
+      const selectedPartsData = availableParts.filter((p) => selectedParts.includes(p.id))
+      const response = await fetch("/api/chat-fiche", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          cours: subject?.name || 'Chimie',
-          chapitre: selectedChapterData?.name || '',
-          parties: selectedPartsData.map(p => p.name),
+          cours: subject?.name || "Chimie",
+          chapitre: selectedChapterData?.name || "",
+          parties: selectedPartsData.map((p) => p.name),
           difficulte: difficulty,
-          promptPerso: prompt || undefined
-        })
+          promptPerso: prompt || undefined,
+        }),
       })
-
       const data = await response.json()
-
       if (data.success) {
         const timestamp = Date.now()
         const ficheKey = `generatedFicheData_${timestamp}`
-        
-        sessionStorage.setItem(ficheKey, JSON.stringify({
+        const ficheData = JSON.stringify({
           subject: subject?.name,
           subjectId: subject?.id,
           subjectIcon: subject?.icon,
           subjectColor: subject?.color,
           subjectBgColor: subject?.bgColor,
           chapter: selectedChapterData?.name,
-          parts: selectedPartsData.map(p => p.name),
-          difficulty: difficulty,
+          parts: selectedPartsData.map((p) => p.name),
+          difficulty,
           revision: data.data.revision,
           flashcards: data.data.flashcards,
           quiz: data.data.quiz,
-          createdAt: new Date().toISOString()
-        }))
-        
-        sessionStorage.setItem('generatedFicheData', sessionStorage.getItem(ficheKey) || '')
-        
+          createdAt: new Date().toISOString(),
+        })
+        localStorage.setItem(ficheKey, ficheData)
+        localStorage.setItem("generatedFicheData", ficheData)
         toast.success("Fiche générée avec succès !")
-        router.push('/fiches/revision')
+        router.push("/fiches/revision")
       } else {
         toast.error("Erreur lors de la génération")
       }
-    } catch (error) {
-      console.error('Erreur:', error)
+    } catch {
       toast.error("Erreur de connexion au serveur")
     } finally {
       setLoading(false)
@@ -105,68 +82,37 @@ function DatabaseGeneratorContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[100px]" />
-      </div>
-
-      <header className="sticky top-0 z-50 glass">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-              <span className="text-xl">🦕</span>
-            </div>
-            <span className="font-bold hidden sm:block">DinoBot</span>
-          </Link>
-          <div className="flex-1" />
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Fiches</span>
-            <ChevronRight className="w-4 h-4" />
-            <span className="font-medium text-foreground">Créer</span>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen">
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-8">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 mb-4">
-              <span className="text-sm font-medium text-purple-600">
+              <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
                 {subject?.icon} {subject?.name}
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">
-              Configure ta fiche
-            </h1>
-            <p className="text-muted-foreground">
-              Personnalise les paramètres de génération
-            </p>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">Configure ta fiche</h1>
+            <p className="text-muted-foreground">Personnalise les paramètres de génération</p>
           </div>
 
           <div className="space-y-6">
-            <div className="p-6 rounded-2xl glass">
+            <div className="p-6 rounded-2xl bg-background/60 backdrop-blur border border-border">
               <label className="flex items-center gap-2 text-sm font-semibold mb-3">
                 <BookOpen className="w-4 h-4 text-purple-500" />
                 Chapitre
               </label>
               <select
                 value={selectedChapter}
-                onChange={(e) => {
-                  setSelectedChapter(e.target.value)
-                  setSelectedParts([])
-                }}
+                onChange={(e) => { setSelectedChapter(e.target.value); setSelectedParts([]) }}
                 className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all"
               >
                 {chapters.map((chapter) => (
-                  <option key={chapter.id} value={chapter.id}>
-                    {chapter.name}
-                  </option>
+                  <option key={chapter.id} value={chapter.id}>{chapter.name}</option>
                 ))}
               </select>
             </div>
 
-            <div className="p-6 rounded-2xl glass">
+            <div className="p-6 rounded-2xl bg-background/60 backdrop-blur border border-border">
               <label className="flex items-center gap-2 text-sm font-semibold mb-3">
                 <FileText className="w-4 h-4 text-purple-500" />
                 Parties à inclure
@@ -179,15 +125,9 @@ function DatabaseGeneratorContent() {
                   {selectedParts.map((partId) => {
                     const part = availableParts.find((p) => p.id === partId)
                     return (
-                      <span
-                        key={partId}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-500/10 text-purple-700 text-sm font-medium"
-                      >
-                        <span>{part?.name}</span>
-                        <button
-                          className="hover:bg-purple-200 rounded-full p-0.5 transition-colors"
-                          onClick={() => removePart(partId)}
-                        >
+                      <span key={partId} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-500/10 text-purple-700 text-sm font-medium">
+                        {part?.name}
+                        <button onClick={() => removePart(partId)} className="hover:bg-purple-200 rounded-full p-0.5">
                           <X className="w-3 h-3" />
                         </button>
                       </span>
@@ -200,9 +140,8 @@ function DatabaseGeneratorContent() {
                     <ChevronDown className="w-4 h-4 text-muted-foreground" />
                   </button>
                 </div>
-
                 {showPartsDropdown && (
-                  <div className="absolute z-10 w-full mt-2 rounded-xl glass overflow-hidden">
+                  <div className="absolute z-10 w-full mt-2 rounded-xl bg-background/95 backdrop-blur border border-border overflow-hidden shadow-xl">
                     {availableParts
                       .filter((part) => !selectedParts.includes(part.id))
                       .map((part) => (
@@ -219,17 +158,14 @@ function DatabaseGeneratorContent() {
               </div>
             </div>
 
-            <div className="p-6 rounded-2xl glass">
+            <div className="p-6 rounded-2xl bg-background/60 backdrop-blur border border-border">
               <label className="flex items-center gap-2 text-sm font-semibold mb-3">
                 <Sparkles className="w-4 h-4 text-purple-500" />
                 Difficulté
               </label>
               <div className="flex items-center gap-4">
                 <input
-                  type="range"
-                  min="1"
-                  max="3"
-                  value={difficulty}
+                  type="range" min="1" max="3" value={difficulty}
                   onChange={(e) => setDifficulty(Number(e.target.value))}
                   className="flex-1 accent-purple-500"
                 />
@@ -254,10 +190,11 @@ function DatabaseGeneratorContent() {
               </p>
             </div>
 
-            <div className="p-6 rounded-2xl glass">
+            <div className="p-6 rounded-2xl bg-background/60 backdrop-blur border border-border">
               <label className="flex items-center gap-2 text-sm font-semibold mb-3">
                 <Sparkles className="w-4 h-4 text-purple-500" />
-                Prompt personnalisé <span className="text-muted-foreground text-xs font-normal">(optionnel)</span>
+                Prompt personnalisé{" "}
+                <span className="text-muted-foreground text-xs font-normal">(optionnel)</span>
               </label>
               <textarea
                 value={prompt}
@@ -266,15 +203,13 @@ function DatabaseGeneratorContent() {
                 maxLength={1000}
                 className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 focus:outline-none min-h-[120px] resize-none transition-all"
               />
-              <div className="text-right text-xs text-muted-foreground mt-1">
-                {prompt.length}/1000
-              </div>
+              <div className="text-right text-xs text-muted-foreground mt-1">{prompt.length}/1000</div>
             </div>
 
             <button
               onClick={handleGenerate}
               disabled={loading || selectedParts.length === 0}
-              className="w-full p-4 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-lg shadow-purple-500/30 hover:shadow-xl hover:scale-[1.01] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 btn-shimmer"
+              className="w-full p-4 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-lg shadow-purple-500/30 hover:shadow-xl hover:scale-[1.01] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -285,7 +220,6 @@ function DatabaseGeneratorContent() {
                 <span className="flex items-center justify-center gap-2">
                   <Sparkles className="w-5 h-5" />
                   Générer ma fiche
-                  <Sparkles className="w-5 h-5" />
                 </span>
               )}
             </button>
@@ -299,7 +233,7 @@ function DatabaseGeneratorContent() {
 export default function DatabaseGeneratorPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="flex items-center gap-2">
           <Loader2 className="w-6 h-6 animate-spin text-purple-500" />
           <span className="text-muted-foreground">Chargement...</span>
